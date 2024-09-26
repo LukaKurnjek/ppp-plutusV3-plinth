@@ -13,8 +13,15 @@ library scripts
   import:         options
   hs-source-dirs: src
   exposed-modules:
-    AuctionMintingPolicy
-    AuctionValidator
+    Week02.Validators
+    Week03.Vesting
+    Week03.ParameterizedVesting
+    Week05.NFT
+    Week06.NegativeRTimed
+    Week06.ExploitableSwap
+    Week08.Staking
+    Week09.Oracle
+    Week09.Stablecoin
 
   build-depends:
     , base
@@ -25,24 +32,10 @@ library scripts
   if !(impl(ghcjs) || os(ghcjs))
     build-depends: plutus-tx-plugin
 
-executable gen-auction-validator-blueprint
+executable gen-blueprint
   import:           options
   hs-source-dirs:   app
-  main-is:          GenAuctionValidatorBlueprint.hs
-  build-depends:
-    , base
-    , bytestring
-    , containers
-    , plutus-core ^>=1.34.0.0
-    , plutus-ledger-api ^>=1.34.0.0
-    , plutus-tx ^>=1.34.0.0
-    , plutus-tx-plugin ^>=1.34.0.0
-    , scripts
-
-executable gen-minting-policy-blueprint
-  import:           options
-  hs-source-dirs:   app
-  main-is:          GenMintingPolicyBlueprint.hs
+  main-is:          GenBlueprint.hs
   build-depends:
     , base
     , bytestring
