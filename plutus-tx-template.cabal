@@ -14,14 +14,6 @@ library scripts
   hs-source-dirs: src
   exposed-modules:
     Week02.Validators
-    Week03.Vesting
-    Week03.ParameterizedVesting
-    Week05.NFT
-    Week06.NegativeRTimed
-    Week06.ExploitableSwap
-    Week08.Staking
-    Week09.Oracle
-    Week09.Stablecoin
 
   build-depends:
     , base
