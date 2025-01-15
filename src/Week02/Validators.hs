@@ -1,15 +1,20 @@
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DataKinds                  #-}
+{-# LANGUAGE DeriveAnyClass             #-}
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE ImportQualifiedPost #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE Strict #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE ImportQualifiedPost        #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE PatternSynonyms            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE Strict                     #-}
+{-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE TypeApplications           #-}
+{-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE ViewPatterns               #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
 {-# OPTIONS_GHC -fno-full-laziness #-}
 {-# OPTIONS_GHC -fno-ignore-interface-pragmas #-}
 {-# OPTIONS_GHC -fno-omit-interface-pragmas #-}
@@ -22,6 +27,7 @@
 
 module Week02.Validators where
 
+import GHC.Generics (Generic)
 import PlutusLedgerApi.Common (
   FromData (fromBuiltinData),
   SerialisedScript,
@@ -35,7 +41,8 @@ import PlutusTx (
   BuiltinData,
   CompiledCode,
   UnsafeFromData (unsafeFromBuiltinData),
-  compile
+  compile, 
+  makeIsDataSchemaIndexed
  )
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Prelude (
@@ -47,8 +54,11 @@ import PlutusTx.Prelude (
   traceError,
   traceIfFalse,
   ($),
-  otherwise
+  otherwise,
+  (.)
  )
+import PlutusTx.Blueprint (HasBlueprintDefinition)
+import PlutusTx.Blueprint.Definition (definitionRef)
 
 {- ----------------------------------------------------------------------------------------- -}
 {- --------------------------------- Always True validator --------------------------------- -}
@@ -117,3 +127,30 @@ compiledMk42TypedValidator = $$(compile [||wrappedVal||])
 
 serializedMk42TypedValidator :: SerialisedScript
 serializedMk42TypedValidator = serialiseCompiledCode compiledMk42TypedValidator
+
+{- ------------------------------------------------------------------------------------------ -}
+{- -------------------------------- 42 validator custom type -------------------------------- -}
+ 
+-- Custom data types for our redeemer 
+data MySillyRedeemer = MkMySillyRedeemer Integer 
+  deriving stock (Generic)
+  deriving anyclass (HasBlueprintDefinition)
+
+makeIsDataSchemaIndexed ''MySillyRedeemer [('MkMySillyRedeemer, 0)]
+
+{-# INLINEABLE mk42CustomValidator #-}
+mk42CustomValidator :: ScriptContext -> Bool
+mk42CustomValidator ctx = traceIfFalse "Redeemer is a number different than 42" $ 42 == r
+ where 
+   r = case fromBuiltinData @MySillyRedeemer . getRedeemer $ scriptContextRedeemer ctx of
+     Just (MkMySillyRedeemer rInt) -> rInt
+     Nothing -> traceError "Redeemer is not of MySillyRedeemer type."
+
+compiledMk42CustomValidator :: CompiledCode (BuiltinData -> BuiltinUnit)
+compiledMk42CustomValidator = $$(compile [||wrappedVal||])
+ where
+  wrappedVal :: BuiltinData -> BuiltinUnit
+  wrappedVal ctx = check $ mk42CustomValidator (unsafeFromBuiltinData ctx)
+
+serializedMk42CustomValidator :: SerialisedScript
+serializedMk42CustomValidator = serialiseCompiledCode compiledMk42CustomValidator
