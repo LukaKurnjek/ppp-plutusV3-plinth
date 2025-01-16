@@ -36,6 +36,7 @@ blueprint =
           , mkBurnVal
           , mk42Val
           , mk42TypedVal
+          , mk42CustomVal
           ]
     , contractDefinitions =
         deriveDefinitions
@@ -114,7 +115,7 @@ mk42Val =
 mk42TypedVal :: ValidatorBlueprint referencedTypes
 mk42TypedVal =
   MkValidatorBlueprint
-    { validatorTitle = "42 Validator"
+    { validatorTitle = "42 Validator typed"
     , validatorDescription = Just "Validator that returns true only if the redeemer is 42"
     , validatorParameters = []
     , validatorRedeemer =
@@ -127,4 +128,22 @@ mk42TypedVal =
     , validatorDatum = Nothing
     , validatorCompiledCode =
         Just . Short.fromShort $ Week02.serializedMk42TypedValidator
+    }
+
+mk42CustomVal :: ValidatorBlueprint referencedTypes
+mk42CustomVal =
+  MkValidatorBlueprint
+    { validatorTitle = "42 Validator custom redeemer"
+    , validatorDescription = Just "Validator that returns true only if the redeemer is correctly wrapped number 42."
+    , validatorParameters = []
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Just "Redeemer for the 42 typed validator"
+          , argumentPurpose = Set.fromList [Spend, Mint, Withdraw, Publish]
+          , argumentSchema = definitionRef @Integer
+          }
+    , validatorDatum = Nothing
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Week02.serializedMk42CustomValidator
     }
