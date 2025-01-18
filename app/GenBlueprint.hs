@@ -38,6 +38,7 @@ blueprint =
           , mk42ValSmall
           , mk42TypedVal
           , mk42CustomVal
+          , read42ValSmall
           ]
     , contractDefinitions =
         deriveDefinitions
@@ -165,4 +166,22 @@ mk42CustomVal =
     , validatorDatum = Nothing
     , validatorCompiledCode =
         Just . Short.fromShort $ Week02.serializedMk42CustomValidator
+    }
+
+read42ValSmall :: ValidatorBlueprint referencedTypes
+read42ValSmall =
+  MkValidatorBlueprint
+    { validatorTitle = "42 datum validator untyped"
+    , validatorDescription = Just "Validator that returns true only if the datum is number 42."
+    , validatorParameters = []
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Just "Redeemer for the 42 typed validator"
+          , argumentPurpose = Set.fromList [Spend, Mint, Withdraw, Publish]
+          , argumentSchema = definitionRef @Integer
+          }
+    , validatorDatum = Nothing
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Week02.serializedRead42ValidatorSmall
     }

@@ -100,6 +100,27 @@
       "hash": "6828334183fe0deb5576416c73448fdf40cf1c158195b8a24fe9bc45"
     },
     {
+      "title": "42 datum validator untyped",
+      "description": "Validator that returns true only if the datum is number 42.",
+      "redeemer": {
+        "title": "Redeemer",
+        "description": "Redeemer for the 42 typed validator",
+        "purpose": {
+          "oneOf": [
+            "spend",
+            "mint",
+            "withdraw",
+            "publish"
+          ]
+        },
+        "schema": {
+          "$ref": "#/definitions/Integer"
+        }
+      },
+      "compiledCode": "5831010100255333573466e1d2054375a6ae84d55cf1baa357426ae88d55cf1baa357426ae88d5d11aab9e3754002229308b01",
+      "hash": "9736df7736cae8d0356c5ad58cc0c61c1cc8b52786779d9a94d3229b"
+    },
+    {
       "title": "Always False Validator",
       "description": "Validator that always returns False (always fails)",
       "redeemer": {

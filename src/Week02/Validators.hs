@@ -127,19 +127,19 @@ mk42ValidatorSmall ctx
     | redeemerInt == 42 = BI.unitval
     | otherwise         = traceError "Expected 42 integer redeemer"
  where
-    -- Lazily decode script context up to redeemer, which is less expensive 
-    -- and results in much smaller tx size
+    -- Lazily decode script context up to redeemer; 
+    -- is less expensive and results in much smaller tx size 
     constrArgs :: BuiltinData -> BI.BuiltinList BuiltinData
     constrArgs = BI.snd . BI.unsafeDataAsConstr
 
     redeemerFollowedByScriptInfo :: BI.BuiltinList BuiltinData
     redeemerFollowedByScriptInfo = BI.tail (constrArgs ctx)
 
-    redeemer :: BuiltinData
-    redeemer = BI.head redeemerFollowedByScriptInfo
+    redeemerBD :: BuiltinData
+    redeemerBD = BI.head redeemerFollowedByScriptInfo
 
     redeemerInt :: BI.BuiltinInteger 
-    redeemerInt = unsafeDataAsI redeemer
+    redeemerInt = unsafeDataAsI redeemerBD
 
 compiledMk42ValidatorSmall :: CompiledCode (BuiltinData -> BuiltinUnit)
 compiledMk42ValidatorSmall = $$(compile [||mk42ValidatorSmall||])
@@ -193,3 +193,34 @@ compiledMk42CustomValidator = $$(compile [||wrappedVal||])
 
 serializedMk42CustomValidator :: SerialisedScript
 serializedMk42CustomValidator = serialiseCompiledCode compiledMk42CustomValidator
+
+{- ------------------------------------------------------------------------------------------ -}
+{- -------------------------- Datum 42 validator untyped small CBOR ------------------------- -} 
+
+{-# INLINEABLE read42ValidatorSmall #-}
+read42ValidatorSmall :: BuiltinData -> BuiltinUnit
+read42ValidatorSmall ctx 
+    | datumInt == 42 = BI.unitval
+    | otherwise      = traceError "Datum is a number different than 42" 
+ where
+    -- Lazily decode script context up to datum  
+    constrArgs :: BuiltinData -> BI.BuiltinList BuiltinData
+    constrArgs = BI.snd . BI.unsafeDataAsConstr
+
+    scriptInfoData :: BuiltinData
+    scriptInfoData = BI.head . BI.tail . BI.tail $ constrArgs ctx
+
+    maybeDatumBD :: BuiltinData
+    maybeDatumBD = BI.head . BI.tail $ constrArgs scriptInfoData 
+
+    datumBD :: BuiltinData
+    datumBD = BI.head $ constrArgs maybeDatumBD
+
+    datumInt :: BI.BuiltinInteger 
+    datumInt = unsafeDataAsI datumBD 
+
+compiledRead42ValidatorSmall :: CompiledCode (BuiltinData -> BuiltinUnit)
+compiledRead42ValidatorSmall = $$(compile [||read42ValidatorSmall||])
+
+serializedRead42ValidatorSmall :: SerialisedScript
+serializedRead42ValidatorSmall = serialiseCompiledCode compiledRead42ValidatorSmall
