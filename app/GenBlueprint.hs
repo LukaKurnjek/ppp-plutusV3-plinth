@@ -34,7 +34,8 @@ blueprint =
         Set.fromList
           [ mkGiftVal
           , mkBurnVal
-          , mk42Val
+          , mk42ValLarge
+          , mk42ValSmall
           , mk42TypedVal
           , mk42CustomVal
           ]
@@ -94,10 +95,10 @@ mkBurnVal =
         Just . Short.fromShort $ Week02.serializedMkBurnValidator
     }
 
-mk42Val :: ValidatorBlueprint referencedTypes
-mk42Val =
+mk42ValLarge :: ValidatorBlueprint referencedTypes
+mk42ValLarge =
   MkValidatorBlueprint
-    { validatorTitle = "42 Validator"
+    { validatorTitle = "42 Validator untyped - large CBOR"
     , validatorDescription = Just "Validator that returns true only if the redeemer is 42"
     , validatorParameters = []
     , validatorRedeemer =
@@ -109,7 +110,25 @@ mk42Val =
           }
     , validatorDatum = Nothing
     , validatorCompiledCode =
-        Just . Short.fromShort $ Week02.serializedMk42Validator
+        Just . Short.fromShort $ Week02.serializedMk42ValidatorLarge
+    }
+
+mk42ValSmall :: ValidatorBlueprint referencedTypes
+mk42ValSmall =
+  MkValidatorBlueprint
+    { validatorTitle = "42 Validator untyped - small CBOR"
+    , validatorDescription = Just "Validator that returns true only if the redeemer is 42"
+    , validatorParameters = []
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Just "Redeemer for the 42 validator"
+          , argumentPurpose = Set.fromList [Spend, Mint, Withdraw, Publish]
+          , argumentSchema = definitionRef @Integer
+          }
+    , validatorDatum = Nothing
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Week02.serializedMk42ValidatorSmall
     }
 
 mk42TypedVal :: ValidatorBlueprint referencedTypes

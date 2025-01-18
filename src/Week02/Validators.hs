@@ -44,6 +44,16 @@ import PlutusTx (
   compile, 
   makeIsDataSchemaIndexed
  )
+import PlutusTx.Builtins (unsafeDataAsI)
+import qualified PlutusTx.Builtins.Internal as BI (
+  BuiltinList, 
+  BuiltinInteger, 
+  head, 
+  snd, 
+  tail, 
+  unitval,
+  unsafeDataAsConstr
+ )
 import PlutusTx.Bool (Bool (..))
 import PlutusTx.Prelude (
   BuiltinUnit,
@@ -87,13 +97,13 @@ serializedMkBurnValidator :: SerialisedScript
 serializedMkBurnValidator = serialiseCompiledCode compiledMkBurnValidator
 
 {- ------------------------------------------------------------------------------------------ -}
-{- -------------------------------------- 42 validator -------------------------------------- -}
+{- ----------------------------- 42 validator untyped large CBOR ---------------------------- -}
 
-{-# INLINEABLE mk42Validator #-}
-mk42Validator :: BuiltinData -> BuiltinUnit
-mk42Validator ctx 
-    | r == 42   = check True
-    | otherwise = traceError "expected 42"
+{-# INLINEABLE mk42ValidatorLarge #-}
+mk42ValidatorLarge :: BuiltinData -> BuiltinUnit
+mk42ValidatorLarge ctx 
+    | r == 42   = BI.unitval
+    | otherwise = traceError "Expected 42 integer redeemer"
  where
   ctxTyped = case fromBuiltinData ctx of
     Just @ScriptContext c -> c
@@ -102,11 +112,40 @@ mk42Validator ctx
     Just @Integer n -> n
     Nothing -> traceError "Redeemer is not a number"  
 
-compiledMk42Validator :: CompiledCode (BuiltinData -> BuiltinUnit)
-compiledMk42Validator = $$(compile [||mk42Validator||])
+compiledMk42ValidatorLarge :: CompiledCode (BuiltinData -> BuiltinUnit)
+compiledMk42ValidatorLarge = $$(compile [||mk42ValidatorLarge||])
 
-serializedMk42Validator :: SerialisedScript
-serializedMk42Validator = serialiseCompiledCode compiledMk42Validator
+serializedMk42ValidatorLarge :: SerialisedScript
+serializedMk42ValidatorLarge = serialiseCompiledCode compiledMk42ValidatorLarge
+
+{- ------------------------------------------------------------------------------------------ -}
+{- ----------------------------- 42 validator untyped small CBOR ---------------------------- -}
+
+{-# INLINEABLE mk42ValidatorSmall #-}
+mk42ValidatorSmall :: BuiltinData -> BuiltinUnit
+mk42ValidatorSmall ctx 
+    | redeemerInt == 42 = BI.unitval
+    | otherwise         = traceError "Expected 42 integer redeemer"
+ where
+    -- Lazily decode script context up to redeemer, which is less expensive 
+    -- and results in much smaller tx size
+    constrArgs :: BuiltinData -> BI.BuiltinList BuiltinData
+    constrArgs = BI.snd . BI.unsafeDataAsConstr
+
+    redeemerFollowedByScriptInfo :: BI.BuiltinList BuiltinData
+    redeemerFollowedByScriptInfo = BI.tail (constrArgs ctx)
+
+    redeemer :: BuiltinData
+    redeemer = BI.head redeemerFollowedByScriptInfo
+
+    redeemerInt :: BI.BuiltinInteger 
+    redeemerInt = unsafeDataAsI redeemer
+
+compiledMk42ValidatorSmall :: CompiledCode (BuiltinData -> BuiltinUnit)
+compiledMk42ValidatorSmall = $$(compile [||mk42ValidatorSmall||])
+
+serializedMk42ValidatorSmall :: SerialisedScript
+serializedMk42ValidatorSmall = serialiseCompiledCode compiledMk42ValidatorSmall
 
 {- ------------------------------------------------------------------------------------------ -}
 {- ----------------------------------- 42 validator typed ----------------------------------- -}
