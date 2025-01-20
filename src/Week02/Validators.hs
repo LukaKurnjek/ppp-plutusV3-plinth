@@ -27,48 +27,27 @@
 
 module Week02.Validators where
 
-import GHC.Generics (Generic)
-import PlutusLedgerApi.Common (
-  FromData (fromBuiltinData),
-  SerialisedScript,
-  serialiseCompiledCode,
- )
-import PlutusLedgerApi.V3 (
-  Redeemer (getRedeemer),
-  ScriptContext (..),
- )
-import PlutusTx (
-  BuiltinData,
-  CompiledCode,
-  UnsafeFromData (unsafeFromBuiltinData),
-  compile, 
-  makeIsDataSchemaIndexed
- )
-import PlutusTx.Builtins (unsafeDataAsI)
-import qualified PlutusTx.Builtins.Internal as BI (
-  BuiltinList, 
-  BuiltinInteger, 
-  head, 
-  snd, 
-  tail, 
-  unitval,
-  unsafeDataAsConstr
- )
-import PlutusTx.Bool (Bool (..))
-import PlutusTx.Prelude (
-  BuiltinUnit,
-  Eq (..),
-  Integer,
-  Maybe (..),
-  check,
-  traceError,
-  traceIfFalse,
-  ($),
-  otherwise,
-  (.)
- )
-import PlutusTx.Blueprint (HasBlueprintDefinition)
+import GHC.Generics                  (Generic)
+import PlutusLedgerApi.Common        (FromData (fromBuiltinData),
+                                      SerialisedScript,
+                                      serialiseCompiledCode)
+import PlutusLedgerApi.V3            (Redeemer (getRedeemer),
+                                      ScriptContext (..))
+import PlutusTx                      (BuiltinData, CompiledCode,
+                                      UnsafeFromData (unsafeFromBuiltinData),
+                                      compile, makeIsDataSchemaIndexed)
+import PlutusTx.Builtins             (unsafeDataAsI)
+import PlutusTx.Bool                 (Bool (..))
+import PlutusTx.Prelude              (BuiltinUnit, Eq (..), Integer,
+                                      Maybe (..), check, traceError,
+                                      traceIfFalse, ($), otherwise,
+                                      (.))
+import PlutusTx.Blueprint            (HasBlueprintDefinition)
 import PlutusTx.Blueprint.Definition (definitionRef)
+import qualified PlutusTx.Builtins.Internal as BI (
+                                      BuiltinList, BuiltinInteger, 
+                                      head, snd, tail, unitval,
+                                      unsafeDataAsConstr)
 
 {- ----------------------------------------------------------------------------------------- -}
 {- --------------------------------- Always True validator --------------------------------- -}
