@@ -28,10 +28,10 @@
 module Week02.Validators where
 
 import GHC.Generics                  (Generic)
-import PlutusLedgerApi.Common        (FromData (fromBuiltinData),
+import PlutusLedgerApi.Common        (FromData (fromBuiltinData), 
                                       SerialisedScript,
                                       serialiseCompiledCode)
-import PlutusLedgerApi.V3            (Redeemer (getRedeemer),
+import PlutusLedgerApi.Data.V3       (Redeemer (getRedeemer),
                                       ScriptContext (..))
 import PlutusTx                      (BuiltinData, CompiledCode,
                                       UnsafeFromData (unsafeFromBuiltinData),
@@ -48,6 +48,11 @@ import qualified PlutusTx.Builtins.Internal as BI (
                                       BuiltinList, BuiltinInteger, 
                                       head, snd, tail, unitval,
                                       unsafeDataAsConstr)
+
+{- NOTE 
+   If importing ScriptContent from the PlutusLedgerApi.V3 module instead 
+   of the PlutusLedgerApi.Data.V3, CBOR sizes are around 10% larger. 
+-}
 
 {- ----------------------------------------------------------------------------------------- -}
 {- --------------------------------- Always True validator --------------------------------- -}
@@ -111,11 +116,11 @@ mk42ValidatorSmall ctx
     constrArgs :: BuiltinData -> BI.BuiltinList BuiltinData
     constrArgs = BI.snd . BI.unsafeDataAsConstr
 
-    redeemerFollowedByScriptInfo :: BI.BuiltinList BuiltinData
-    redeemerFollowedByScriptInfo = BI.tail (constrArgs ctx)
+    scriptInfoBL :: BI.BuiltinList BuiltinData
+    scriptInfoBL = constrArgs ctx
 
     redeemerBD :: BuiltinData
-    redeemerBD = BI.head redeemerFollowedByScriptInfo
+    redeemerBD = BI.head . BI.tail $ scriptInfoBL
 
     redeemerInt :: BI.BuiltinInteger 
     redeemerInt = unsafeDataAsI redeemerBD
