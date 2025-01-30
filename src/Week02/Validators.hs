@@ -116,11 +116,11 @@ mk42ValidatorSmall ctx
     constrArgs :: BuiltinData -> BI.BuiltinList BuiltinData
     constrArgs = BI.snd . BI.unsafeDataAsConstr
 
-    scriptInfoBL :: BI.BuiltinList BuiltinData
-    scriptInfoBL = constrArgs ctx
+    scriptContextBL :: BI.BuiltinList BuiltinData
+    scriptContextBL = constrArgs ctx
 
     redeemerBD :: BuiltinData
-    redeemerBD = BI.head . BI.tail $ scriptInfoBL
+    redeemerBD = BI.head . BI.tail $ scriptContextBL
 
     redeemerInt :: BI.BuiltinInteger 
     redeemerInt = unsafeDataAsI redeemerBD
@@ -191,11 +191,11 @@ read42ValidatorSmall ctx
     constrArgs :: BuiltinData -> BI.BuiltinList BuiltinData
     constrArgs = BI.snd . BI.unsafeDataAsConstr
 
-    scriptInfoData :: BuiltinData
-    scriptInfoData = BI.head . BI.tail . BI.tail $ constrArgs ctx
+    scriptInfoBD :: BuiltinData
+    scriptInfoBD = BI.head . BI.tail . BI.tail $ constrArgs ctx
 
     maybeDatumBD :: BuiltinData
-    maybeDatumBD = BI.head . BI.tail $ constrArgs scriptInfoData 
+    maybeDatumBD = BI.head . BI.tail $ constrArgs scriptInfoBD 
 
     datumBD :: BuiltinData
     datumBD = BI.head $ constrArgs maybeDatumBD
