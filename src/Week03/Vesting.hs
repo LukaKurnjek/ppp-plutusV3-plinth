@@ -31,8 +31,8 @@ import           GHC.Generics                  (Generic)
 import           PlutusLedgerApi.Common        (FromData (fromBuiltinData),
                                                 SerialisedScript,
                                                 serialiseCompiledCode)
-import           PlutusLedgerApi.Data.V3       (POSIXTime, PubKeyHash, from)
-import           PlutusLedgerApi.V1.Interval   (contains)
+import           PlutusLedgerApi.Data.V3       (POSIXTime, PubKeyHash)
+import           PlutusLedgerApi.V1.Interval   (contains, from)
 import           PlutusLedgerApi.V3            (ScriptContext (..),
                                                 ScriptInfo (..),
                                                 TxInfo (txInfoValidRange),
@@ -41,7 +41,8 @@ import           PlutusLedgerApi.V3.Contexts   (txSignedBy)
 import           PlutusTx                      (BuiltinData, CompiledCode,
                                                 UnsafeFromData (unsafeFromBuiltinData),
                                                 compile,
-                                                makeIsDataSchemaIndexed)
+                                                makeIsDataSchemaIndexed,
+                                                makeLift)
 import           PlutusTx.Blueprint            (HasBlueprintDefinition)
 import           PlutusTx.Blueprint.Definition (definitionRef)
 import           PlutusTx.Bool                 (Bool (..), (&&))
@@ -68,7 +69,7 @@ makeIsDataSchemaIndexed ''VestingDatum [('VestingDatum, 0)]
 vestingVal :: ScriptContext -> Bool
 vestingVal ctx =
   traceIfFalse "Is not the beneficiary" checkBeneficiary
-    && traceIfFalse "Deadline not reachec" checkDeadline
+    && traceIfFalse "Deadline not reached" checkDeadline
  where
   checkBeneficiary :: Bool
   checkBeneficiary = txSignedBy info (beneficiary vestingDatum)
@@ -97,3 +98,47 @@ compiledVestingVal = $$(compile [||wrappedVal||])
 
 serializedVestingVal :: SerialisedScript
 serializedVestingVal = serialiseCompiledCode compiledVestingVal
+
+{- ------------------------------------------------------------------------------------------ -}
+{- ---------------------------------- PARAMETERIZED TYPES ----------------------------------- -}
+
+data VestingParams = VestingParams
+  { beneficiaryParam :: PubKeyHash
+  , deadlineParam    :: POSIXTime
+  }
+  deriving stock (Generic)
+  deriving anyclass (HasBlueprintDefinition)
+
+makeLift ''VestingParams
+makeIsDataSchemaIndexed ''VestingParams [('VestingParams, 0)]
+
+{- ------------------------------------------------------------------------------------------ -}
+{- -------------------------------- PARAMETERIZED VALIDATOR --------------------------------- -}
+
+{-# INLINEABLE paramVestingVal #-}
+paramVestingVal :: VestingParams -> ScriptContext -> Bool
+paramVestingVal vp ctx =
+  traceIfFalse "Is not the beneficiary" checkBeneficiary
+    && traceIfFalse "Deadline not reached" checkDeadline
+ where
+  checkBeneficiary :: Bool
+  checkBeneficiary = txSignedBy info (beneficiaryParam vp)
+
+  checkDeadline :: Bool
+  checkDeadline = from (deadlineParam vp) `contains` txInfoValidRange info
+
+  info :: TxInfo
+  info = scriptContextTxInfo ctx
+
+{- ------------------------------------------------------------------------------------------ -}
+{- ---------------------------------------- HELPERS ----------------------------------------- -}
+
+compiledParamVestingVal :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinUnit)
+compiledParamVestingVal = $$(compile [||wrappedVal||])
+ where
+  wrappedVal :: BuiltinData -> BuiltinData -> PlutusTx.Prelude.BuiltinUnit
+  wrappedVal params ctx = check $ paramVestingVal (unsafeFromBuiltinData params) (unsafeFromBuiltinData ctx)
+
+serializedParamVestingVal :: SerialisedScript
+serializedParamVestingVal = serialiseCompiledCode compiledParamVestingVal
+

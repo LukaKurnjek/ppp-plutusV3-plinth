@@ -15,6 +15,7 @@ import qualified Data.ByteString.Short       as Short
 import qualified Data.Set                    as Set
 import           PlutusTx.Blueprint
 import qualified Week02.Validators           as Week02
+import qualified Week03.Vesting              as Vesting
 
 {- -------------------------------------------------------------------------------------------- -}
 {- ---------------------------------------- ENTRY POINT --------------------------------------- -}
@@ -39,6 +40,8 @@ blueprint =
           , mk42TypedVal
           , mk42CustomVal
           , read42ValSmall
+          , vestingValidator
+          , vestingValidatorParam
           ]
     , contractDefinitions =
         deriveDefinitions
@@ -184,4 +187,57 @@ read42ValSmall =
     , validatorDatum = Nothing
     , validatorCompiledCode =
         Just . Short.fromShort $ Week02.serializedRead42ValidatorSmall
+    }
+
+{- -------------------------------------------------------------------------------------------- -}
+{- ------------------------------------ VALIDATORS - WEEK03 ----------------------------------- -}
+
+vestingValidator :: ValidatorBlueprint referencedTypes
+vestingValidator =
+  MkValidatorBlueprint
+    { validatorTitle = "Vesting Validator"
+    , validatorDescription = Just "Validator that allows spending only by a certain key and after a certain deadline"
+    , validatorParameters = []
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Just "Redeemer for the vesting validator"
+          , argumentPurpose = Set.singleton Spend
+          , argumentSchema = definitionRef @()
+          }
+    , validatorDatum =
+        Just $
+          MkArgumentBlueprint
+            { argumentTitle = Just "VestingDatum"
+            , argumentDescription = Just "Datum for the vesting validator"
+            , argumentPurpose = Set.singleton Spend
+            , argumentSchema = definitionRef @Vesting.VestingDatum
+            }
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Vesting.serializedVestingVal
+    }
+
+vestingValidatorParam :: ValidatorBlueprint referencedTypes
+vestingValidatorParam =
+  MkValidatorBlueprint
+    { validatorTitle = "Parameterized Vesting Validator"
+    , validatorDescription = Just "Validator that allows spending only by a certain key and after a certain deadline"
+    , validatorParameters =
+        [ MkParameterBlueprint
+            { parameterTitle = Just "VestingParams"
+            , parameterDescription = Just ""
+            , parameterPurpose = Set.singleton Spend
+            , parameterSchema = definitionRef @Vesting.VestingParams
+            }
+        ]
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Just "Redeemer for the vesting validator"
+          , argumentPurpose = Set.singleton Spend
+          , argumentSchema = definitionRef @()
+          }
+    , validatorDatum = Nothing
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Vesting.serializedParamVestingVal
     }
