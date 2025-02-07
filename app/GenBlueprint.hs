@@ -224,10 +224,10 @@ vestingValidatorParam =
     , validatorDescription = Just "Validator that allows spending only by a certain key and after a certain deadline"
     , validatorParameters =
         [ MkParameterBlueprint
-            { parameterTitle = Just "VestingParams"
+            { parameterTitle = Just "VestingParam"
             , parameterDescription = Just ""
             , parameterPurpose = Set.singleton Spend
-            , parameterSchema = definitionRef @Vesting.VestingParams
+            , parameterSchema = definitionRef @Vesting.VestingParam
             }
         ]
     , validatorRedeemer =

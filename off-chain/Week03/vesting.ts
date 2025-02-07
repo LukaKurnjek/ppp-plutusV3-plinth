@@ -50,8 +50,8 @@ const deadlinePOSIX = BigInt(deadlineDate.getTime());
 
 // Set the vesting beneficiary to our own key.
 const details: AddressDetails = getAddressDetails(addr);
-const beneficiaryPKHRaw: string | undefined = details.paymentCredential?.hash
-const beneficiaryPKH: string = (typeof beneficiaryPKHRaw === "undefined") ? "" : beneficiaryPKHRaw
+const beneficiaryPKHMaybe: string | undefined = details.paymentCredential?.hash
+const beneficiaryPKH: string = (typeof beneficiaryPKHMaybe === "undefined") ? "" : beneficiaryPKHMaybe
 
 // Creating a datum with a beneficiary and deadline
 const datum: DatumType = {

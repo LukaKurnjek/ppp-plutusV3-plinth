@@ -102,21 +102,21 @@ serializedVestingVal = serialiseCompiledCode compiledVestingVal
 {- ------------------------------------------------------------------------------------------ -}
 {- ---------------------------------- PARAMETERIZED TYPES ----------------------------------- -}
 
-data VestingParams = VestingParams
+data VestingParam = VestingParam
   { beneficiaryParam :: PubKeyHash
   , deadlineParam    :: POSIXTime
   }
   deriving stock (Generic)
   deriving anyclass (HasBlueprintDefinition)
 
-makeLift ''VestingParams
-makeIsDataSchemaIndexed ''VestingParams [('VestingParams, 0)]
+makeLift ''VestingParam
+makeIsDataSchemaIndexed ''VestingParam [('VestingParam, 0)]
 
 {- ------------------------------------------------------------------------------------------ -}
 {- -------------------------------- PARAMETERIZED VALIDATOR --------------------------------- -}
 
 {-# INLINEABLE paramVestingVal #-}
-paramVestingVal :: VestingParams -> ScriptContext -> Bool
+paramVestingVal :: VestingParam -> ScriptContext -> Bool
 paramVestingVal vp ctx =
   traceIfFalse "Is not the beneficiary" checkBeneficiary
     && traceIfFalse "Deadline not reached" checkDeadline
@@ -137,7 +137,7 @@ compiledParamVestingVal :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinUn
 compiledParamVestingVal = $$(compile [||wrappedVal||])
  where
   wrappedVal :: BuiltinData -> BuiltinData -> PlutusTx.Prelude.BuiltinUnit
-  wrappedVal params ctx = check $ paramVestingVal (unsafeFromBuiltinData params) (unsafeFromBuiltinData ctx)
+  wrappedVal param ctx = check $ paramVestingVal (unsafeFromBuiltinData param) (unsafeFromBuiltinData ctx)
 
 serializedParamVestingVal :: SerialisedScript
 serializedParamVestingVal = serialiseCompiledCode compiledParamVestingVal

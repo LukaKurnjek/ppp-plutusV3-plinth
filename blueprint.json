@@ -175,11 +175,11 @@
       },
       "parameters": [
         {
-          "title": "VestingParams",
+          "title": "VestingParam",
           "description": "",
           "purpose": "spend",
           "schema": {
-            "$ref": "#/definitions/VestingParams"
+            "$ref": "#/definitions/VestingParam"
           }
         }
       ],
