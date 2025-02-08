@@ -50,8 +50,7 @@ const deadlinePOSIX = BigInt(deadlineDate.getTime());
 
 // Set the vesting beneficiary to our own key.
 const details: AddressDetails = getAddressDetails(addr);
-const beneficiaryPKHMaybe: string | undefined = details.paymentCredential?.hash
-const beneficiaryPKH: string = (typeof beneficiaryPKHMaybe === "undefined") ? "" : beneficiaryPKHMaybe
+const beneficiaryPKH: string = details.paymentCredential?.hash!;
 
 // Creating a datum with a beneficiary and deadline
 const datum: DatumType = {
@@ -93,6 +92,6 @@ async function claimVestedFunds(): Promise<TxHash> {
   else return "No UTxO's found that can be claimed"
 }
 
-//console.log(await vestFunds(7_000_000n));
+//console.log(await vestFunds(5_000_000n));
 //console.log(await claimVestedFunds());
-    
+
