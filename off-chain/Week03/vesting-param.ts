@@ -42,12 +42,11 @@ const deadlinePOSIX = BigInt(deadlineDate.getTime());
 
 // Set the vesting beneficiary to our own key.
 const details: AddressDetails = getAddressDetails(addr);
-const beneficiaryPKHMaybe: string | undefined = details.paymentCredential?.hash
-const beneficiaryPKH: string = (typeof beneficiaryPKHMaybe === "undefined") ? "" : beneficiaryPKHMaybe
+const beneficiaryPKH: string = details.paymentCredential?.hash!
 
 // Creating a vesting parameter with a beneficiary and deadline
 const VestingParam: VestingParamType = {
-  beneficiaryParam: beneficiaryPKH,
+  beneficiaryParam: beneficiaryPKH, 
   deadlineParam: deadlinePOSIX
 };
 
@@ -115,7 +114,7 @@ const referenceUTxO = await getReferenceUTxO();
 async function getVestedUTxO() {
   const utxos = await lucid.utxosByOutRef([{
       txHash:
-        "ccb5b0e56746931b04abd0b17ead2b109a31c39ab6894890f1b537dd91818559",
+        "36a9b63a703506336f44e319da5e2887d0f2afb8a2b9dfbe9b13df1a1bfde48f",
       outputIndex: 0
   }]);
   return utxos;
@@ -124,6 +123,7 @@ async function getVestedUTxO() {
 // Function for claiming vested funds from script 
 async function claimVestedFunds(): Promise<TxHash> {
   const vestedUTxO = await getVestedUTxO();
+  console.log(vestedUTxO)
 
   if (vestedUTxO && vestedUTxO.length > 0) {
     const tx = await lucid
@@ -143,7 +143,7 @@ async function claimVestedFunds(): Promise<TxHash> {
 }
 
 // Function calls 
-//console.log(await vestFunds(6_000_000n));
+//console.log(await vestFunds(5_000_000n));
 //console.log(await deployVestingScript());
 //console.log(await claimVestedFunds());
 
