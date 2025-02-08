@@ -45,7 +45,7 @@ const deadlinePOSIX = BigInt(deadlineDate.getTime());
 
 // Set the vesting beneficiary to our own key.
 const details: AddressDetails = getAddressDetails(addr);
-const beneficiaryPKH: string = String(details.paymentCredential?.hash!);
+const beneficiaryPKH: string = details.paymentCredential?.hash!;
 
 // Create the vesting parameter as shown in Complex type section in 
 // https://github.com/Anastasia-Labs/lucid-evolution/blob/main/docs/pages/documentation/deep-dives/smart-contract-interactions.mdx
