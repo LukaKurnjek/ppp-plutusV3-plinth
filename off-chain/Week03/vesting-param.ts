@@ -17,7 +17,8 @@ import {
   SpendingValidator,
   Data, 
   AddressDetails,
-  TxHash
+  TxHash,
+  UTxO
 } from "@lucid-evolution/lucid";
 import {
   validatorToAddress,
@@ -55,12 +56,12 @@ const vestData = Data.to(new Constr(0, [beneficiaryPKH, deadlinePOSIX]));
 // https://github.com/spacebudz/lucid/blob/main/examples/typed_data.ts
 // ----------------------------------------------------
 // Create vesting type schema 
-const VestingParamSchema = Data.Object({
+const vestingParamSchema = Data.Object({
   beneficiaryParam: Data.Bytes(),
   deadlineParam: Data.Integer(),
 });
-type VestingParamType = Data.Static<typeof VestingParamSchema>;
-const VestingParamType = VestingParamSchema as unknown as VestingParamType;
+type VestingParamType = Data.Static<typeof vestingParamSchema>;
+const vestingParamType = vestingParamSchema as unknown as VestingParamType;
 
 // Creating a vesting parameter with a beneficiary and deadline
 const VestingParam: VestingParamType = {
@@ -69,12 +70,11 @@ const VestingParam: VestingParamType = {
 };
 
 // Vesting parameter serialized to Data type 
-const VestingParamAsData = Data.to<VestingParamType>(VestingParam,VestingParamType);
+const vestingParamAsData = Data.to<VestingParamType>(VestingParam,vestingParamType);
 // ----------------------------------------------------
 
 // Defining the spending script 
-// NOTE: If applying VestingParamAsData instead of vestData to the parameterized validator 
-//       executing the claimVestedFunds function returns the same error 
+// NOTE: Applying vestingParamAsData instead of vestData gives the same validator address
 const vestingScript: SpendingValidator = {
   type: "PlutusV3",
   script: applyParamsToScript(
@@ -143,8 +143,7 @@ async function getVestedUTxO() {
 
 // Function for claiming vested funds from script 
 async function claimVestedFunds(): Promise<TxHash> {
-  const vestedUTxO = await getVestedUTxO();
-  console.log(vestedUTxO)
+  const vestedUTxO: UTxO[] = await getVestedUTxO();
 
   if (vestedUTxO && vestedUTxO.length > 0) {
     const tx = await lucid
