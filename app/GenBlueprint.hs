@@ -16,6 +16,7 @@ import qualified Data.Set                    as Set
 import           PlutusTx.Blueprint
 import qualified Week02.Validators           as Week02
 import qualified Week03.Vesting              as Vesting
+import           PlutusLedgerApi.Data.V3     (POSIXTime, PubKeyHash)
 
 {- -------------------------------------------------------------------------------------------- -}
 {- ---------------------------------------- ENTRY POINT --------------------------------------- -}
@@ -42,11 +43,16 @@ blueprint =
           , read42ValSmall
           , vestingValidator
           , vestingValidatorParam
+          , vestingValidatorParam2
           ]
     , contractDefinitions =
         deriveDefinitions
           @[ ()
            , Integer
+           , Vesting.VestingDatum
+           , Vesting.VestingParam
+           , PubKeyHash
+           , POSIXTime
            ]
     }
 
@@ -195,7 +201,7 @@ read42ValSmall =
 vestingValidator :: ValidatorBlueprint referencedTypes
 vestingValidator =
   MkValidatorBlueprint
-    { validatorTitle = "Vesting Validator"
+    { validatorTitle = "Vesting validator"
     , validatorDescription = Just "Validator that allows spending only by a certain key and after a certain deadline"
     , validatorParameters = []
     , validatorRedeemer =
@@ -220,7 +226,7 @@ vestingValidator =
 vestingValidatorParam :: ValidatorBlueprint referencedTypes
 vestingValidatorParam =
   MkValidatorBlueprint
-    { validatorTitle = "Parameterized Vesting Validator"
+    { validatorTitle = "Parameterized vesting validator"
     , validatorDescription = Just "Validator that allows spending only by a certain key and after a certain deadline"
     , validatorParameters =
         [ MkParameterBlueprint
@@ -240,4 +246,35 @@ vestingValidatorParam =
     , validatorDatum = Nothing
     , validatorCompiledCode =
         Just . Short.fromShort $ Vesting.serializedParamVestingVal
+    }
+
+vestingValidatorParam2 :: ValidatorBlueprint referencedTypes
+vestingValidatorParam2 =
+  MkValidatorBlueprint
+    { validatorTitle = "2 times parameterized vesting validator"
+    , validatorDescription = Just "Validator that allows spending only by a certain key and after a certain deadline"
+    , validatorParameters =
+        [ MkParameterBlueprint
+            { parameterTitle = Just "PubKeyHash"
+            , parameterDescription = Just ""
+            , parameterPurpose = Set.singleton Spend
+            , parameterSchema = definitionRef @PubKeyHash
+            }
+        , MkParameterBlueprint
+            { parameterTitle = Just "POSIXTime"
+            , parameterDescription = Just ""
+            , parameterPurpose = Set.singleton Spend
+            , parameterSchema = definitionRef @POSIXTime
+            }
+        ]
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Just "Redeemer for the vesting validator"
+          , argumentPurpose = Set.singleton Spend
+          , argumentSchema = definitionRef @()
+          }
+    , validatorDatum = Nothing
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Vesting.serializedParam2VestingVal
     }

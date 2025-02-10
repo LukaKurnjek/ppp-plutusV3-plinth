@@ -142,3 +142,34 @@ compiledParamVestingVal = $$(compile [||wrappedVal||])
 serializedParamVestingVal :: SerialisedScript
 serializedParamVestingVal = serialiseCompiledCode compiledParamVestingVal
 
+{- ------------------------------------------------------------------------------------------ -}
+{- ---------------------------- 2-TIMES PARAMETERIZED VALIDATOR ----------------------------- -}
+
+{-# INLINEABLE param2VestingVal #-}
+param2VestingVal :: PubKeyHash -> POSIXTime -> ScriptContext -> Bool
+param2VestingVal keyHash time ctx =
+  traceIfFalse "Is not the beneficiary" checkBeneficiary
+    && traceIfFalse "Deadline not reached" checkDeadline
+ where
+  checkBeneficiary :: Bool
+  checkBeneficiary = txSignedBy info keyHash
+
+  checkDeadline :: Bool
+  checkDeadline = from time `contains` txInfoValidRange info
+
+  info :: TxInfo
+  info = scriptContextTxInfo ctx
+
+{- ------------------------------------------------------------------------------------------ -}
+{- ---------------------------------------- HELPERS ----------------------------------------- -}
+
+compiledParam2VestingVal :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)
+compiledParam2VestingVal = $$(compile [||wrappedVal||])
+ where
+  wrappedVal :: BuiltinData -> BuiltinData -> BuiltinData -> PlutusTx.Prelude.BuiltinUnit
+  wrappedVal param1 param2 ctx = check $ param2VestingVal (unsafeFromBuiltinData param1) 
+                                                          (unsafeFromBuiltinData param2)
+                                                          (unsafeFromBuiltinData ctx)
+
+serializedParam2VestingVal :: SerialisedScript
+serializedParam2VestingVal = serialiseCompiledCode compiledParam2VestingVal
