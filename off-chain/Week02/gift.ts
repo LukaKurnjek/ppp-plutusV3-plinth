@@ -58,7 +58,7 @@ async function sendFunds(amount: bigint): Promise<TxHash> {
 async function getUTxO() {
   const utxos = await lucid.utxosByOutRef([{
       txHash:
-        "4af6e053f55f313120f1643d6bc6ecee969fc7da3840b39c2a1cad366b2cfe29",
+        "<transaction_hash>",
       outputIndex: 0
   }]);
   return utxos;
