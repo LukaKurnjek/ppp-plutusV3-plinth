@@ -84,13 +84,6 @@ const vestingScript: SpendingValidator = {
 };
 const vestingAddress = validatorToAddress("Preview", vestingScript);
 
-// Defining the burn script 
-const burnScript: SpendingValidator = {
-  type: "PlutusV3",
-  script: "450101002601"
-};
-const burnAddress = validatorToAddress("Preview", burnScript);
-
 // Function that sends an amount of lovelace to the vesting script 
 async function vestFunds(amount: bigint): Promise<TxHash> {
   const tx = await lucid
@@ -103,34 +96,6 @@ async function vestFunds(amount: bigint): Promise<TxHash> {
   return txHash
 }
 
-// Deploy a reference script 
-async function deployVestingScript(): Promise<TxHash>{
-  const tx = await lucid
-    .newTx()
-    .pay.ToAddressWithData(
-      burnAddress,
-      { kind: "inline", value: Data.void() },
-      { lovelace: 10_000_000n },
-      vestingScript // The script to be stored as a reference for subsequent transactions
-    )
-    .complete();
-
-    const signedTx = await tx.sign.withWallet().complete();
-    const txHash = await signedTx.submit();
-    return txHash
-}
-
-// Get the UTXO that contains our vesting script 
-async function getReferenceUTxO() {
-  const utxos = await lucid.utxosByOutRef([{
-      txHash:
-        "c19b54edc8a3353eb7c0d9c8e1721a07e23436201545be62a2b44b3a57674e5f",
-      outputIndex: 0
-  }]);
-  return utxos[0];
-}
-const referenceUTxO = await getReferenceUTxO();
-
 // Function for claiming vested funds from script 
 async function claimVestedFunds(): Promise<TxHash> {
   const vestedUTxO: UTxO[] = await lucid.utxosAt(vestingAddress);
@@ -141,7 +106,6 @@ async function claimVestedFunds(): Promise<TxHash> {
       .collectFrom(vestedUTxO, Data.void()) //we use void for redeemer
       .addSignerKey(beneficiaryPKH)
       .attach.SpendingValidator(vestingScript)
-      //.readFrom([referenceUTxO]) //can be switched with line above 
       .validFrom(Date.now()-30*1000) // 30 sec before now
       .complete();
 

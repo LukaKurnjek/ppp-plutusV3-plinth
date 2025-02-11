@@ -1,4 +1,9 @@
 
+/*
+Off-chain code for the vesting validator (vestingVal) defined in 
+https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week03/Vesting.hs
+*/
+
 import { 
   Lucid, 
   Blockfrost,
