@@ -15,12 +15,11 @@ import {
   TxHash,
   UTxO
 } from "@lucid-evolution/lucid";
-import { secretSeed } from "./seed.ts";
-
 import {
   validatorToAddress,
   getAddressDetails
 } from "@lucid-evolution/utils";
+import { secretSeed } from "./seed.ts";
 
 const lucid = await Lucid(
   new Blockfrost(
