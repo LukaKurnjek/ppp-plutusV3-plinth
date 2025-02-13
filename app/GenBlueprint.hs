@@ -18,7 +18,7 @@ import qualified Week02.Validators           as Week02
 import qualified Week03.Vesting              as Vesting
 import           PlutusLedgerApi.Data.V3     (POSIXTime, PubKeyHash)
 import           PlutusLedgerApi.V3          (TokenName, TxOutRef)
-import qualified Week05.NFT                  as NFT
+import qualified Week05.Minting              as Minting
 
 {- -------------------------------------------------------------------------------------------- -}
 {- ---------------------------------------- ENTRY POINT --------------------------------------- -}
@@ -310,7 +310,7 @@ signedValidator =
           }
     , validatorDatum = Nothing
     , validatorCompiledCode =
-        Just . Short.fromShort $ NFT.serializedSignedVal
+        Just . Short.fromShort $ Minting.serializedSignedVal
     }
 
 nftValidator :: ValidatorBlueprint referencedTypes
@@ -341,6 +341,6 @@ nftValidator =
           }
     , validatorDatum = Nothing
     , validatorCompiledCode =
-        Just . Short.fromShort $ NFT.serializedNFTVal
+        Just . Short.fromShort $ Minting.serializedNFTVal
     }
 

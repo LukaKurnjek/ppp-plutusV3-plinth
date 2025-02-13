@@ -25,7 +25,7 @@
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 
-module Week05.NFT where
+module Week05.Minting where
 
 import           PlutusLedgerApi.Common      (SerialisedScript,
                                               serialiseCompiledCode)
