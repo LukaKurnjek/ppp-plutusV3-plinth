@@ -27,22 +27,46 @@
 
 module Week05.NFT where
 
-import           PlutusLedgerApi.Common   (SerialisedScript,
-                                           serialiseCompiledCode)
-import           PlutusLedgerApi.V1.Value (flattenValue)
-import           PlutusLedgerApi.V3       (ScriptContext (..), TokenName,
-                                           TxInInfo (txInInfoOutRef),
-                                           TxInfo (txInfoInputs, txInfoMint),
-                                           TxOutRef (TxOutRef), TxId (TxId))
-import           PlutusTx                 (BuiltinData, CompiledCode,
-                                           UnsafeFromData (unsafeFromBuiltinData),
-                                           compile)
-import           PlutusTx.Bool            (Bool (..), (&&))
-import           PlutusTx.Prelude         (BuiltinUnit, Eq ((==)), any, check,
-                                           traceIfFalse, ($))
+import           PlutusLedgerApi.Common      (SerialisedScript,
+                                              serialiseCompiledCode)
+import           PlutusLedgerApi.V1.Value    (flattenValue)
+import           PlutusLedgerApi.V3          (ScriptContext (..), TokenName,
+                                              TxInInfo (txInInfoOutRef),
+                                              TxInfo (txInfoInputs, txInfoMint),
+                                              TxOutRef (TxOutRef), TxId (TxId),
+                                              PubKeyHash)
+import           PlutusTx                    (BuiltinData, CompiledCode,
+                                              UnsafeFromData (unsafeFromBuiltinData),
+                                              compile)
+import           PlutusLedgerApi.V3.Contexts (txSignedBy)
+import           PlutusTx.Bool               (Bool (..), (&&))
+import           PlutusTx.Prelude            (BuiltinUnit, Eq ((==)), any, check,
+                                              traceIfFalse, ($))
 
 {- ------------------------------------------------------------------------------------------ -}
 {- --------------------------------------- VALIDATOR ---------------------------------------- -}
+
+{-# INLINABLE signedVal #-}
+signedVal :: PubKeyHash -> ScriptContext -> Bool
+signedVal pkh ctx = traceIfFalse "missing signature" $ 
+                                 txSignedBy (scriptContextTxInfo ctx) pkh
+
+{- ------------------------------------------------------------------------------------------ -}
+{- ---------------------------------------- HELPERS ----------------------------------------- -}
+
+compiledSignedVal :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinUnit)
+compiledSignedVal = $$(compile [||wrappedVal||])
+ where
+  wrappedVal :: BuiltinData -> BuiltinData -> BuiltinUnit
+  wrappedVal pkh ctx = check $ signedVal 
+                                 (unsafeFromBuiltinData pkh)
+                                 (unsafeFromBuiltinData ctx)
+
+serializedSignedVal :: SerialisedScript
+serializedSignedVal = serialiseCompiledCode compiledSignedVal
+
+{- ------------------------------------------------------------------------------------------ -}
+{- ------------------------------------- NFT VALIDATOR -------------------------------------- -}
 
 {-# INLINEABLE nftVal #-}
 nftVal :: TxOutRef -> TokenName -> ScriptContext -> Bool

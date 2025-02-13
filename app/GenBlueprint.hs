@@ -46,6 +46,7 @@ blueprint =
           , vestingValidator
           , vestingValidatorParam
           , vestingValidatorParam2
+          , signedValidator
           , nftValidator
           ]
     , contractDefinitions =
@@ -287,11 +288,36 @@ vestingValidatorParam2 =
 {- -------------------------------------------------------------------------------------------- -}
 {- ------------------------------------ VALIDATORS - WEEK05 ----------------------------------- -}
 
+signedValidator :: ValidatorBlueprint referencedTypes
+signedValidator =
+  MkValidatorBlueprint
+    { validatorTitle = "Signed minting policy"
+    , validatorDescription = Just "Policy that allows minting only when the correct signature is added"
+    , validatorParameters =
+        [ MkParameterBlueprint
+            { parameterTitle = Just "PubKeyHash"
+            , parameterDescription = Just ""
+            , parameterPurpose = Set.singleton Spend
+            , parameterSchema = definitionRef @PubKeyHash
+            }
+        ]
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Nothing
+          , argumentPurpose = Set.singleton Mint
+          , argumentSchema = definitionRef @()
+          }
+    , validatorDatum = Nothing
+    , validatorCompiledCode =
+        Just . Short.fromShort $ NFT.serializedSignedVal
+    }
+
 nftValidator :: ValidatorBlueprint referencedTypes
 nftValidator =
   MkValidatorBlueprint
-    { validatorTitle = "NFT Validator"
-    , validatorDescription = Just "Validator that allows spending only once and only to mint one token"
+    { validatorTitle = "NFT minting policy"
+    , validatorDescription = Just "Policy that allows spending only once and only to mint one token"
     , validatorParameters =
         [ MkParameterBlueprint
             { parameterTitle = Just "TxOutRef"
