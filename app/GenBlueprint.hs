@@ -17,6 +17,8 @@ import           PlutusTx.Blueprint
 import qualified Week02.Validators           as Week02
 import qualified Week03.Vesting              as Vesting
 import           PlutusLedgerApi.Data.V3     (POSIXTime, PubKeyHash)
+import           PlutusLedgerApi.V3          (TokenName, TxOutRef)
+import qualified Week05.NFT                  as NFT
 
 {- -------------------------------------------------------------------------------------------- -}
 {- ---------------------------------------- ENTRY POINT --------------------------------------- -}
@@ -44,6 +46,7 @@ blueprint =
           , vestingValidator
           , vestingValidatorParam
           , vestingValidatorParam2
+          , nftValidator
           ]
     , contractDefinitions =
         deriveDefinitions
@@ -53,6 +56,8 @@ blueprint =
            , Vesting.VestingParam
            , PubKeyHash
            , POSIXTime
+           , TxOutRef
+           , TokenName
            ]
     }
 
@@ -278,3 +283,38 @@ vestingValidatorParam2 =
     , validatorCompiledCode =
         Just . Short.fromShort $ Vesting.serializedParam2VestingVal
     }
+
+{- -------------------------------------------------------------------------------------------- -}
+{- ------------------------------------ VALIDATORS - WEEK05 ----------------------------------- -}
+
+nftValidator :: ValidatorBlueprint referencedTypes
+nftValidator =
+  MkValidatorBlueprint
+    { validatorTitle = "NFT Validator"
+    , validatorDescription = Just "Validator that allows spending only once and only to mint one token"
+    , validatorParameters =
+        [ MkParameterBlueprint
+            { parameterTitle = Just "TxOutRef"
+            , parameterDescription = Just "Reference to the UTxO to consume to be able to mint the NFT"
+            , parameterPurpose = Set.singleton Mint
+            , parameterSchema = definitionRef @TxOutRef
+            }
+        , MkParameterBlueprint
+            { parameterTitle = Just "TokenName"
+            , parameterDescription = Just "NFT's token name"
+            , parameterPurpose = Set.singleton Mint
+            , parameterSchema = definitionRef @TokenName
+            }
+        ]
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Nothing
+          , argumentPurpose = Set.singleton Mint
+          , argumentSchema = definitionRef @()
+          }
+    , validatorDatum = Nothing
+    , validatorCompiledCode =
+        Just . Short.fromShort $ NFT.serializedNFTVal
+    }
+

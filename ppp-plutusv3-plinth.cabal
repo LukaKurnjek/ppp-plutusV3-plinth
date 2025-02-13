@@ -15,6 +15,7 @@ library scripts
   exposed-modules:
     Week02.Validators
     Week03.Vesting
+    Week05.NFT
 
   build-depends:
     , base
