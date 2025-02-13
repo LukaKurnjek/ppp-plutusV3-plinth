@@ -71,8 +71,8 @@ serializedSignedVal = serialiseCompiledCode compiledSignedVal
 {-# INLINEABLE nftVal #-}
 nftVal :: TxOutRef -> TokenName -> ScriptContext -> Bool
 nftVal oref tn ctx =
-  PlutusTx.Prelude.traceIfFalse "UTxO not consumed" checkHasUTxO && 
-  PlutusTx.Prelude.traceIfFalse "You can only mint one!" checkMintedAmount
+  traceIfFalse "UTxO not consumed" checkHasUTxO && 
+  traceIfFalse "You can only mint one!" checkMintedAmount
  where
   checkHasUTxO :: Bool
   checkHasUTxO = any (\i -> txInInfoOutRef i == oref) $ txInfoInputs info
@@ -91,17 +91,16 @@ nftVal oref tn ctx =
 compiledNftVal :: CompiledCode (BuiltinData -> BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit)
 compiledNftVal = $$(compile [||wrappedVal||])
  where
-  wrappedVal :: BuiltinData -> BuiltinData -> BuiltinData -> BuiltinData -> PlutusTx.Prelude.BuiltinUnit
+  wrappedVal :: BuiltinData -> BuiltinData -> BuiltinData -> BuiltinData -> BuiltinUnit
   wrappedVal tid idx tn ctx =
     let oref :: TxOutRef
         oref = TxOutRef
-          (TxId $ PlutusTx.unsafeFromBuiltinData tid)
-          (PlutusTx.unsafeFromBuiltinData idx)
-    in PlutusTx.Prelude.check
-         PlutusTx.Prelude.$ nftVal
-           oref
-           (unsafeFromBuiltinData tn)
-           (unsafeFromBuiltinData ctx)
+          (TxId $ unsafeFromBuiltinData tid)
+          (unsafeFromBuiltinData idx)
+    in check $ nftVal
+                 oref
+                 (unsafeFromBuiltinData tn)
+                 (unsafeFromBuiltinData ctx)
 
 serializedNFTVal :: SerialisedScript
 serializedNFTVal = serialiseCompiledCode compiledNftVal
