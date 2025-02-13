@@ -1,7 +1,7 @@
 
 /*
 Off-chain code for the NFT validator (nftVal) defined in 
-https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week05/NFT.hs
+https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week05/Minting.hs
 */
 
 import { 
