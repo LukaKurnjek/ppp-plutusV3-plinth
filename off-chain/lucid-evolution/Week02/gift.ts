@@ -18,6 +18,8 @@ import {
   getAddressDetails
 } from "@lucid-evolution/utils";
 import { secretSeed } from "./seed.ts";
+// seed.ts has to be in form of: 
+// export const secretSeed = "seed1 seed2 seedN"
 
 const lucid = await Lucid(
   new Blockfrost(
