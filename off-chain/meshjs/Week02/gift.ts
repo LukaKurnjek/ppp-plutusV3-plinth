@@ -41,7 +41,7 @@ const scriptAddr = resolvePlutusScriptAddress(trueScript, 0);
 // Function for creating UTXO at gift script 
 async function sendFunds(amount: string) {
   const tx = new Transaction({ initiator: wallet })
-    .sendLovelace(scriptAddr, amount)
+    .sendLovelace({address: scriptAddr, datum: {value: "", inline: true }}, amount)
     .setChangeAddress(ourAddr);
 
   const txUnsigned = await tx.build();
