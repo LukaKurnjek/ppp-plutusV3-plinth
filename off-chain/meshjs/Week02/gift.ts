@@ -66,9 +66,13 @@ async function getAssetUtxo(scriptAddress) {
 // Function for claiming funds 
 async function claimFunds() {
   const assetUtxo: UTxO = await getAssetUtxo(scriptAddr);
-  const tx = new Transaction({ initiator: wallet })
-  .redeemValue({ value: assetUtxo, script: trueScript })
-  .setRequiredSigners([ourAddr]);
+  const redeemer = { data: { alternative: 1, fields: [] } };
+  
+  const tx = new Transaction({ initiator: wallet, fetcher: provider, verbose: true })
+    .redeemValue({ value: assetUtxo, 
+                   script: trueScript,
+                   redeemer: redeemer})
+    .setRequiredSigners([ourAddr]);
 
   const txUnsigned = await tx.build();
   const txSigned = await wallet.signTx(txUnsigned);
