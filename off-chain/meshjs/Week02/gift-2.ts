@@ -9,9 +9,11 @@ import {
   MeshWallet, 
   Transaction, 
   PlutusScript,
-  resolvePlutusScriptAddress
+  resolvePlutusScriptAddress,
+  MeshTxBuilder
 } from "@meshsdk/core";
 import { UTxO } from "@meshsdk/common";
+import { CardanoSDKSerializer } from "@meshsdk/core-cst";
 import { secretSeed } from "./seed.ts";
 /* seed.ts has to be in form of: 
    export const secretSeed = ["seed1", "seed2", ... ] */
@@ -32,11 +34,11 @@ const wallet = new MeshWallet({
 const ourAddr = await wallet.getChangeAddress();
 
 // Defining our gift script 
-const trueScript: PlutusScript = {
+const giftScript: PlutusScript = {
   code: "450101002499",
   version: "V3"
 };
-const scriptAddr = resolvePlutusScriptAddress(trueScript, 0);
+const scriptAddr = resolvePlutusScriptAddress(giftScript, 0);
 
 // Function for creating UTXO at gift script 
 async function sendFunds(amount: string) {
@@ -63,16 +65,40 @@ async function getAssetUtxo(scriptAddress) {
   return filteredUtxo
 }
 
+// Define the transaction builder 
+const txBuilder = new MeshTxBuilder({
+  fetcher: provider, // get a provider https://meshjs.dev/providers
+  submitter: provider,
+  evaluator: provider,
+  serializer: new CardanoSDKSerializer(),
+  verbose: true,
+});
+
 // Function for claiming funds 
 async function claimFunds() {
   const assetUtxo: UTxO = await getAssetUtxo(scriptAddr);
-  const tx = new Transaction({ initiator: wallet })
-  .redeemValue({ value: assetUtxo, script: trueScript })
-  .setRequiredSigners([ourAddr]);
+  const utxos = await wallet.getUtxos();
+  const collateral = await wallet.getCollateral();
 
-  const txUnsigned = await tx.build();
-  const txSigned = await wallet.signTx(txUnsigned);
-  const txHash = await wallet.submitTx(txSigned);
+  const unsignedTx = await txBuilder
+  .setNetwork("preview")
+  .spendingPlutusScript("V3")
+  .txIn(assetUtxo.input.txHash, assetUtxo.input.outputIndex)
+  .spendingReferenceTxInInlineDatumPresent()
+  .spendingReferenceTxInRedeemerValue("")
+  .txInScript(giftScript.code)
+  .changeAddress(ourAddr)
+  .txInCollateral(
+    collateral[0].input.txHash,
+    collateral[0].input.outputIndex,
+    collateral[0].output.amount,
+    collateral[0].output.address
+  )
+  .selectUtxosFrom(utxos)
+  .complete();
+
+  const signedTx = await wallet.signTx(unsignedTx);
+  const txHash = await wallet.submitTx(signedTx);
   return txHash
 }
 
