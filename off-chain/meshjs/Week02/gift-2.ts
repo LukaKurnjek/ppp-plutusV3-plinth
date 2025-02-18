@@ -5,11 +5,6 @@ https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week02/Validato
 
 The claimFunds() function is constructed in similar way as in the following MeshJS code:
 https://github.com/MeshJS/examples/blob/main/aiken-vesting/src/withdraw-fund.ts
-
-The error that the claimFunds() function returns: 
-error: Uncaught (in promise) Error: Tx evaluation failed: "{\"type\":\"jsonwsp/response\",
-\"version\":\"1.0\",\"servicename\":\"ogmios\",\"methodname\":\"EvaluateTx\",\"result\":
-{\"EvaluationFailure\":{\"ScriptFailures\":{}}},\"reflection\":{\"id\":\"70c408a7-f37d-4a98-9412-52ba5aef7c32\"}}"
 */
 
 import { 
@@ -21,7 +16,8 @@ import {
   MeshTxBuilder,
   deserializeAddress,
   SLOT_CONFIG_NETWORK,
-  unixTimeToEnclosingSlot
+  unixTimeToEnclosingSlot,
+  applyCborEncoding
 } from "@meshsdk/core";
 import { UTxO } from "@meshsdk/common";
 import { CardanoSDKSerializer } from "@meshsdk/core-cst";
@@ -47,7 +43,7 @@ const signerHash = deserializeAddress(walletAddress).pubKeyHash;
 
 // Defining our gift script 
 const giftScript: PlutusScript = {
-  code: "450101002499",
+  code: applyCborEncoding("450101002499"),
   version: "V3"
 };
 const scriptAddr = resolvePlutusScriptAddress(giftScript, 0);
@@ -84,7 +80,7 @@ const txBuilder = new MeshTxBuilder({
   submitter: provider,
   evaluator: provider,
   serializer: new CardanoSDKSerializer(),
-  verbose: true,
+  /*verbose: true*/
 });
 
 // Function for claiming funds 

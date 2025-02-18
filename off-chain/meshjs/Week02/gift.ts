@@ -5,15 +5,6 @@ https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week02/Validato
 
 The claimFunds() function is constructed in similar way as in the following MeshJS code:
 https://github.com/MeshJS/mesh/blob/main/apps/playground/src/pages/aiken/transactions/redeem.tsx
-
-The error that the claimFunds() function returns: 
-error: Uncaught (in promise) '{"data":{"error":"Bad Request","message":"{\\"contents\\":
-{\\"contents\\":{\\"contents\\":{\\"era\\":\\"ShelleyBasedEraConway\\",\\"error\\":
-[\\"ConwayUtxowFailure (MalformedScriptWitnesses
-
-Explanation from the web: malformedScriptWitnesses, occurs when a script witness specified 
-in the transaction does not properly deserialize to a Plutus script.  
-Source: https://newreleases.io/project/github/CardanoSolutions/ogmios/release/v5.5.0
 */
 
 import { 
@@ -21,7 +12,8 @@ import {
   MeshWallet, 
   Transaction, 
   PlutusScript,
-  resolvePlutusScriptAddress
+  resolvePlutusScriptAddress,
+  applyCborEncoding
 } from "@meshsdk/core";
 import { UTxO } from "@meshsdk/common";
 import { secretSeed } from "./seed.ts";
@@ -45,7 +37,7 @@ const walletAddress = await wallet.getChangeAddress();
 
 // Defining our gift script 
 const trueScript: PlutusScript = {
-  code: "450101002499",
+  code: applyCborEncoding("450101002499"),
   version: "V3"
 };
 const scriptAddr = resolvePlutusScriptAddress(trueScript, 0);
@@ -74,7 +66,7 @@ async function getAssetUtxo(scriptAddress) {
     throw 'No listing found.';
   }
   let filteredUtxo = utxos.find((utxo: any) => {
-    return utxo.input.txHash == "a9705c29b745aa9f4e01bf9439f9aef6b2c6d0618fc7f670daa9e1cb156a11be";
+    return utxo.input.txHash == "8dfd046aca19eea3998d6468c8758bebe2890f0012583ca4e2853218414847ae";
   })!;
   return filteredUtxo
 }
@@ -84,7 +76,7 @@ async function claimFunds() {
   const assetUtxo: UTxO = await getAssetUtxo(scriptAddr);
   const redeemer = { data: { alternative: 1, fields: [""] } };
   
-  const tx = new Transaction({ initiator: wallet, fetcher: provider, verbose: true })
+  const tx = new Transaction({ initiator: wallet, fetcher: provider, /*verbose: true*/ })
     .setNetwork("preview")
     .redeemValue({ value: assetUtxo, 
                    script: trueScript,
