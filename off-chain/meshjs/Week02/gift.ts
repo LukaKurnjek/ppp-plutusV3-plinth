@@ -59,14 +59,14 @@ async function sendFunds(amount: string) {
 }
 
 // Function that retunrs the UTXO created with sendFunds
-// NOTE: The correct transaction hash needs to be input into the code  
+// NOTE: The correct <transaction_hash> needs to be input into the code 
 async function getAssetUtxo(scriptAddress) {
   const utxos = await provider.fetchAddressUTxOs(scriptAddress);
   if (utxos.length == 0) {
     throw 'No listing found.';
   }
   let filteredUtxo = utxos.find((utxo: any) => {
-    return utxo.input.txHash == "8dfd046aca19eea3998d6468c8758bebe2890f0012583ca4e2853218414847ae";
+    return utxo.input.txHash == "<transaction_hash>";
   })!;
   return filteredUtxo
 }

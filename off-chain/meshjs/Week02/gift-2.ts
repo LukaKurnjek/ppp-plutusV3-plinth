@@ -4,6 +4,7 @@ Off-chain code for the always true validator (mkGiftValidator) defined in
 https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week02/Validators.hs
 
 The claimFunds() function is constructed in similar way as in the following MeshJS code:
+https://github.com/MeshJS/examples/blob/main/aiken-giftcard/src/redeem.ts and 
 https://github.com/MeshJS/examples/blob/main/aiken-vesting/src/withdraw-fund.ts
 */
 
@@ -62,14 +63,14 @@ async function sendFunds(amount: string) {
 }
 
 // Function that retunrs the UTXO created with sendFunds
-// NOTE: The correct transaction hash needs to be input into the code 
+// NOTE: The correct <transaction_hash> needs to be input into the code 
 async function getAssetUtxo(scriptAddress) {
   const utxos = await provider.fetchAddressUTxOs(scriptAddress);
   if (utxos.length == 0) {
     throw 'No listing found.';
   }
   let filteredUtxo = utxos.find((utxo: any) => {
-    return utxo.input.txHash == "1cf9d34529699de798c0921cdb115bd90d3c11c83d688e96104c8bcdbbabedeb";
+    return utxo.input.txHash == "<transaction_hash>";
   })!;
   return filteredUtxo
 }
@@ -85,13 +86,14 @@ const txBuilder = new MeshTxBuilder({
 
 // Function for claiming funds 
 async function claimFunds() {
-  const assetUtxo: UTxO = await getAssetUtxo(scriptAddr);
   const utxos = await wallet.getUtxos();
+  const assetUtxo: UTxO = await getAssetUtxo(scriptAddr);
   const collateral = await wallet.getCollateral();
+  /* Not needed for this code
   const invalidBefore = unixTimeToEnclosingSlot(
       Date.now() - 15000,
       SLOT_CONFIG_NETWORK.preview
-    ) + 1;
+    ) + 1; */
 
   const unsignedTx = await txBuilder
   .setNetwork("preview")
@@ -105,14 +107,14 @@ async function claimFunds() {
   .spendingReferenceTxInInlineDatumPresent()
   .spendingReferenceTxInRedeemerValue("")
   .txInScript(giftScript.code)
-  .txOut(walletAddress, [])
+  //.txOut(walletAddress, []) // is not needed
   .txInCollateral(
     collateral[0].input.txHash,
     collateral[0].input.outputIndex,
     collateral[0].output.amount,
     collateral[0].output.address
   )
-  .invalidBefore(invalidBefore)
+  //.invalidBefore(invalidBefore) // is not needed
   .requiredSignerHash(signerHash)
   .changeAddress(walletAddress)
   .selectUtxosFrom(utxos)
