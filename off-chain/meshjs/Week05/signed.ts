@@ -1,6 +1,6 @@
 
 /*
-Off-chain code for the NFT validator (signedVal) defined in 
+Off-chain code for the signed validator (signedVal) defined in 
 https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week05/Minting.hs
 */
 
