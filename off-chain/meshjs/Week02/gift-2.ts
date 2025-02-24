@@ -38,7 +38,7 @@ const wallet = new MeshWallet({
   }
 });
 
-// Define address and public key hash of it 
+// Define wallet address and public key hash of it 
 const walletAddress = await wallet.getChangeAddress();
 const signerHash = deserializeAddress(walletAddress).pubKeyHash;
 

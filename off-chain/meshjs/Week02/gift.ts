@@ -20,7 +20,7 @@ import { secretSeed } from "./seed.ts";
 /* seed.ts has to be in form of: 
    export const secretSeed = ["seed1", "seed2", ... ] */
 
-// Define blockchain provider and wallet 
+// Define blockchain provider and wallet and wallet address
 const provider = new BlockfrostProvider("<blockfrost-key>");
 const wallet = new MeshWallet({
   networkId: 0, //0=testnet, 1=mainnet
@@ -31,8 +31,6 @@ const wallet = new MeshWallet({
     words: secretSeed
   }
 });
-
-// Define address and public key hash of it 
 const walletAddress = await wallet.getChangeAddress();
 
 // Defining our gift script 
