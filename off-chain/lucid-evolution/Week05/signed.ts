@@ -60,7 +60,7 @@ const unit: Unit = policyId + tn;
 async function mintSignedTokens(): Promise<TxHash> {
   const tx = await lucid
       .newTx()
-      .mintAssets({[unit]: 10n}, Data.void())
+      .mintAssets({[unit]: 3n}, Data.void())
       .attach.MintingPolicy(signedPolicy)
       .addSignerKey(pkh)
       .complete();
