@@ -89,6 +89,7 @@ async function deployVestingScript(): Promise<TxHash>{
 }
 
 // Get the UTXO that contains our vesting script 
+// NOTE: The transaction hash that deployVestingScript() function retunrs needs to be set here 
 async function getReferenceUTxO() {
   const utxos = await lucid.utxosByOutRef([{
       txHash:
@@ -97,10 +98,10 @@ async function getReferenceUTxO() {
   }]);
   return utxos[0];
 }
-const referenceUTxO = await getReferenceUTxO();
 
 // Function for claiming vested funds from script 
 async function claimVestedFunds(): Promise<TxHash> {
+  const referenceUTxO = await getReferenceUTxO();
   const vestedUTxO: UTxO[] = await lucid.utxosAt(vestingAddress);
 
   if (vestedUTxO && vestedUTxO.length > 0) {
