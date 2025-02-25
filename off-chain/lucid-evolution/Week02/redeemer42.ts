@@ -54,7 +54,7 @@ async function sendFunds(amount: bigint): Promise<TxHash> {
   return txHash
 }
 
-// Get the UTXO that contains our vesting script 
+// Get the UTXO that contains the previous created funds at the redeemer42 script 
 // NOTE: Input the correct transaction hash that sendFunds() returns
 async function getUTxO() {
   const utxos = await lucid.utxosByOutRef([{
@@ -64,14 +64,15 @@ async function getUTxO() {
   }]);
   return utxos;
 }
-const ourUTxO = await getUTxO();
 
 // Function for claiming funds from script 
 async function claimFunds(): Promise<TxHash> {
-  const redeemer42 = Data.to(BigInt(42));
+  const ourUTxO = await getUTxO();
+
   //For the validator with the custom defined type for redeemer use instead: 
   //const redeemer42 = Data.to(new Constr(0, [BigInt(42)]));
-
+  const redeemer42 = Data.to(BigInt(42));
+  
   if (ourUTxO && ourUTxO.length > 0) {
     const tx = await lucid
       .newTx()
@@ -87,5 +88,6 @@ async function claimFunds(): Promise<TxHash> {
   else return "No UTxO's found that can be claimed"
 }
 
+// Function calls: 
 //console.log(await sendFunds(5_000_000n));
 //console.log(await claimFunds());
