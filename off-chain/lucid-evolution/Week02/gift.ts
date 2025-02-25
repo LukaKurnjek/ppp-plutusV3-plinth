@@ -1,6 +1,6 @@
 
 /*
-Off-chain code for the always true validator (mkGiftValidator ) defined in 
+Off-chain code for the always true validator (mkGiftValidator) defined in 
 https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week02/Validators.hs
 */
 
@@ -37,25 +37,25 @@ const addr: Address = await lucid.wallet().address();
 const details: AddressDetails = getAddressDetails(addr);
 const ourPKH: string = details.paymentCredential?.hash!;
 
-// Defining the spending script 
-const trueScript: SpendingValidator = {
+// Defining the gift spending script 
+const giftScript: SpendingValidator = {
   type: "PlutusV3",
   script: "450101002499"
 };
-const trueAddress = validatorToAddress("Preview", trueScript);
+const giftAddress = validatorToAddress("Preview", giftScript);
 
 // Function that sends an amount of lovelace to the script 
 async function sendFunds(amount: bigint): Promise<TxHash> {
   const tx = await lucid
     .newTx()
-    .pay.ToContract(trueAddress, { kind: "inline", value: Data.void() }, { lovelace: amount })
+    .pay.ToContract(giftAddress, { kind: "inline", value: Data.void() }, { lovelace: amount })
     .complete();
   const signedTx = await tx.sign.withWallet().complete();
   const txHash = await signedTx.submit();
   return txHash
 }
 
-// Get the UTXO that contains our vesting script 
+// Get the UTXO that contains the previous created funds at the gift script 
 // NOTE: Input the correct transaction hash that sendFunds() returns
 async function getUTxO() {
   const utxos = await lucid.utxosByOutRef([{
@@ -65,17 +65,17 @@ async function getUTxO() {
   }]);
   return utxos;
 }
-const ourUTxO = await getUTxO();
 
 // Function for claiming funds from script 
 async function claimFunds(): Promise<TxHash> {
-
+  const ourUTxO = await getUTxO();
+  
   if (ourUTxO && ourUTxO.length > 0) {
     const tx = await lucid
       .newTx()
       .collectFrom(ourUTxO, Data.void()) // we use void for redeemer 
       .addSignerKey(ourPKH)
-      .attach.SpendingValidator(trueScript)
+      .attach.SpendingValidator(giftScript)
       .complete();
 
     const signedTx = await tx.sign.withWallet().complete();
@@ -85,5 +85,6 @@ async function claimFunds(): Promise<TxHash> {
   else return "No UTxO's found that can be claimed"
 }
 
+// Function calls: 
 //console.log(await sendFunds(5_000_000n));
 //console.log(await claimFunds());
