@@ -87,4 +87,4 @@ async function claimFunds(txHashGiftUtxo) {
 
 // Function calls 
 //console.log(await sendFunds("5000000"));
-//console.log(await claimFunds());
+//console.log(await claimFunds("<tx-hash>"));
