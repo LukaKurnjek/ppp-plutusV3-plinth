@@ -3,6 +3,9 @@
 Off-chain code for the always true validator (mkGiftValidator) defined in 
 https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week02/Validators.hs
 
+This code use a transaction builder when constructing the claiming transaction.
+That gives a user more control over the transaction. 
+
 The claimFunds() function is constructed in similar way as in the following MeshJS code:
 https://github.com/MeshJS/examples/blob/main/aiken-giftcard/src/redeem.ts and 
 https://github.com/MeshJS/examples/blob/main/aiken-vesting/src/withdraw-fund.ts
@@ -62,15 +65,14 @@ async function sendFunds(amount: string) {
   return txHash
 }
 
-// Function that retunrs the UTXO created with sendFunds
-// NOTE: The correct <transaction_hash> needs to be input into the code 
-async function getAssetUtxo(scriptAddress) {
+// Retunrs UTXOs at a given address that contian the given transaction hash 
+async function getUtxo(scriptAddress, txHash) {
   const utxos = await provider.fetchAddressUTxOs(scriptAddress);
   if (utxos.length == 0) {
     throw 'No listing found.';
   }
   let filteredUtxo = utxos.find((utxo: any) => {
-    return utxo.input.txHash == "<transaction_hash>";
+    return utxo.input.txHash == txHash;
   })!;
   return filteredUtxo
 }
@@ -85,9 +87,9 @@ const txBuilder = new MeshTxBuilder({
 });
 
 // Function for claiming funds 
-async function claimFunds() {
+async function claimFunds(txHashGiftUtxo) {
   const utxos = await wallet.getUtxos();
-  const assetUtxo: UTxO = await getAssetUtxo(scriptAddr);
+  const assetUtxo: UTxO = await getUtxo(scriptAddr, txHashGiftUtxo);
   const collateral = await wallet.getCollateral();
   /* Not needed for this code
   const invalidBefore = unixTimeToEnclosingSlot(
@@ -127,5 +129,4 @@ async function claimFunds() {
 
 // Function calls 
 //console.log(await sendFunds("5000000"));
-//console.log(await getAssetUtxo(scriptAddr));
 //console.log(await claimFunds());

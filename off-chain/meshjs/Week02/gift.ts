@@ -2,9 +2,6 @@
 /*
 Off-chain code for the always true validator (mkGiftValidator) defined in 
 https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week02/Validators.hs
-
-The claimFunds() function is constructed in similar way as in the following MeshJS code:
-https://github.com/MeshJS/mesh/blob/main/apps/playground/src/pages/aiken/transactions/redeem.tsx
 */
 
 import { 
@@ -38,14 +35,14 @@ const trueScript: PlutusScript = {
   code: applyCborEncoding("450101002499"),
   version: "V3"
 };
-const scriptAddr = resolvePlutusScriptAddress(trueScript, 0);
+const trueAddr = resolvePlutusScriptAddress(trueScript, 0);
 
 // Function for creating UTXO at gift script 
 async function sendFunds(amount: string) {
   const tx = new Transaction({ initiator: wallet })
     .setNetwork("preview")
     .sendLovelace(
-      { address: scriptAddr, 
+      { address: trueAddr, 
       /*datum: {value: "", inline: true }*/}, 
       amount)
     .setChangeAddress(walletAddress);
@@ -56,23 +53,22 @@ async function sendFunds(amount: string) {
   return txHash
 }
 
-// Function that retunrs the UTXO created with sendFunds
-// NOTE: The correct <transaction_hash> needs to be input into the code 
-async function getAssetUtxo(scriptAddress) {
+// Retunrs UTXOs at a given address that contian the given transaction hash 
+async function getUtxo(scriptAddress, txHash) {
   const utxos = await provider.fetchAddressUTxOs(scriptAddress);
   if (utxos.length == 0) {
     throw 'No listing found.';
   }
   let filteredUtxo = utxos.find((utxo: any) => {
-    return utxo.input.txHash == "<transaction_hash>";
+    return utxo.input.txHash == txHash;
   })!;
   return filteredUtxo
 }
 
 // Function for claiming funds 
-async function claimFunds() {
-  const assetUtxo: UTxO = await getAssetUtxo(scriptAddr);
-  const redeemer = { data: { alternative: 1, fields: [""] } };
+async function claimFunds(txHashGiftUtxo) {
+  const assetUtxo: UTxO = await getUtxo(trueAddr, txHashGiftUtxo);
+  const redeemer = { data: { alternative: 0, fields: [] } };
   
   const tx = new Transaction({ initiator: wallet, fetcher: provider, /*verbose: true*/ })
     .setNetwork("preview")
@@ -91,5 +87,4 @@ async function claimFunds() {
 
 // Function calls 
 //console.log(await sendFunds("5000000"));
-//console.log(await getAssetUtxo(scriptAddr));
 //console.log(await claimFunds());
