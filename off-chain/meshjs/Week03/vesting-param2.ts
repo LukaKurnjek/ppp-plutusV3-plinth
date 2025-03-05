@@ -71,15 +71,15 @@ async function sendFunds(amount: string) {
 }
 
 // Deploy a reference script 
-async function deployRefScript(lovelacecAmount) {
+async function deployRefScript(lovelaceAmount) {
     const utxos = await wallet.getUtxos();
     const txBuilder = new MeshTxBuilder({
       fetcher: provider 
     });
     
     const unsignedTx = await txBuilder
-      .txOut(burnAddr, [{ unit: "lovelace", quantity: lovelacecAmount }])
-      .txOutReferenceScript(vestingScript.code, "V3")
+      .txOut(burnAddr, [{ unit: "lovelace", quantity: lovelaceAmount }])
+      .txOutReferenceScript(vestingScript.code, vestingScript.version)
       .changeAddress(walletAddress)
       .selectUtxosFrom(utxos)
       .complete();

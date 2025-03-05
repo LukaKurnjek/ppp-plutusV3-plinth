@@ -2,6 +2,8 @@
 /*
 Off-chain code for the vesting validator (vestingVal) defined in 
 https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week03/Vesting.hs
+
+This off-chain code reads the compiled validator code from a reference UTXO.
 */
 
 import { 
@@ -13,7 +15,8 @@ import {
     applyCborEncoding,
     deserializeAddress,
     resolveSlotNo,
-    mConStr0
+    mConStr0,
+    MeshTxBuilder
   } from "@meshsdk/core";
 import { UTxO } from "@meshsdk/common";
 import { secretSeed } from "./seed.ts";
@@ -43,6 +46,13 @@ const vestingScript: PlutusScript = {
 };
 const vestingAddr = resolvePlutusScriptAddress(vestingScript, 0);
 
+// Defining burn address 
+const burnScript: PlutusScript = {
+    code: applyCborEncoding("450101002601"),
+    version: "V3"
+};
+const burnAddr = resolvePlutusScriptAddress(burnScript, 0);
+
 // Set the vesting deadline
 const deadlineDate: Date = new Date("2025-02-05T00:00:00Z")
 const deadlinePOSIX = BigInt(deadlineDate.getTime());
@@ -63,6 +73,25 @@ async function sendFunds(amount: string) {
     return txHash
 }
 
+// Deploy a reference script 
+async function deployRefScript(lovelaceAmount) {
+    const utxos = await wallet.getUtxos();
+    const txBuilder = new MeshTxBuilder({
+      fetcher: provider 
+    });
+    
+    const unsignedTx = await txBuilder
+      .txOut(burnAddr, [{ unit: "lovelace", quantity: lovelaceAmount }])
+      .txOutReferenceScript(vestingScript.code, vestingScript.version)
+      .changeAddress(walletAddress)
+      .selectUtxosFrom(utxos)
+      .complete();
+    
+    const signedTx = await wallet.signTx(unsignedTx);
+    const txHash = await wallet.submitTx(signedTx);
+    return txHash
+}
+
 // Retunrs UTXOs at a given address that contian the given transaction hash 
 async function getUtxo(scriptAddress, txHash) {
 const utxos = await provider.fetchAddressUTxOs(scriptAddress);
@@ -76,15 +105,16 @@ const utxos = await provider.fetchAddressUTxOs(scriptAddress);
 }
 
 // Function for claiming funds 
-async function claimFunds(txHashVestedUTXO) {
+async function claimFunds(txHashVestedUTXO, txHashRefUTXO) {
     const assetUtxo: UTxO = await getUtxo(vestingAddr, txHashVestedUTXO);
+    const refScriptUtxo: UTxO = await getUtxo(burnAddr, txHashRefUTXO);
     const redeemer = { data: { alternative: 1, fields: [""] } };
-    const slot = resolveSlotNo('preview', Date.now() - 30000);
+    const slot = resolveSlotNo('preview', Date.now() - 50000);
 
     const tx = new Transaction({ initiator: wallet, fetcher: provider })
         .setNetwork("preview")
         .redeemValue({ value: assetUtxo, 
-                       script: vestingScript,
+                       script: refScriptUtxo,
                        redeemer: redeemer})
         .setTimeToStart(slot)
         .sendValue(walletAddress, assetUtxo)
@@ -97,5 +127,6 @@ async function claimFunds(txHashVestedUTXO) {
 }
 
 // Function calls 
-//console.log(await sendFunds("5000000"));
-//console.log(await claimFunds("<txHash>"));
+//console.log(await sendFunds("3000000"));
+//console.log(await deployRefScript("30000000"));
+//console.log(await claimFunds("<tx-hash>", "<tx-hash>"));
