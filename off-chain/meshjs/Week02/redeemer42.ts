@@ -10,8 +10,7 @@ import {
   Transaction, 
   PlutusScript,
   resolvePlutusScriptAddress,
-  applyCborEncoding,
-  mConStr0
+  applyCborEncoding
 } from "@meshsdk/core";
 import { UTxO } from "@meshsdk/common";
 import { secretSeed } from "./seed.ts";
