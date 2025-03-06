@@ -2,6 +2,8 @@
 /*
 Off-chain code for the redeemer 42 validator (mk42ValidatorSmall) defined in 
 https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week02/Validators.hs
+
+This off-chain code reads the compiled validator code from a reference UTXO.
 */
 
 import { 
