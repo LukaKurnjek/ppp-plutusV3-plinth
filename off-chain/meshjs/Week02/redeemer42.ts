@@ -67,7 +67,10 @@ async function getUtxo(scriptAddress, txHash) {
 // Function for claiming funds 
 async function claimFunds(txHashAssetUtxo) {
   const assetUtxo: UTxO = await getUtxo(redeemer42Addr, txHashAssetUtxo);
-  const redeemer = { data: { alternative: 0, fields: [BigInt(42)] } };
+
+  // For the validator with the custom defined type for redeemer use instead: 
+  //const redeemer = { data: { alternative: 0, fields: [BigInt(42)] } };
+  const redeemer = { data: BigInt(42) };
   
   const tx = new Transaction({ initiator: wallet, fetcher: provider })
     .setNetwork("preview")
