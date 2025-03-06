@@ -78,7 +78,7 @@ const utxos = await provider.fetchAddressUTxOs(scriptAddress);
 // Function for claiming funds 
 async function claimFunds(txHashVestedUTXO) {
     const assetUtxo: UTxO = await getUtxo(vestingAddr, txHashVestedUTXO);
-    const redeemer = { data: { alternative: 1, fields: [""] } };
+    const redeemer = { data: { alternative: 0, fields: [] } };
     const slot = resolveSlotNo('preview', Date.now() - 30000);
 
     const tx = new Transaction({ initiator: wallet, fetcher: provider })

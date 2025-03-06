@@ -105,7 +105,7 @@ async function getUtxo(scriptAddress, txHash) {
 async function claimFunds(txHashVestedUTXO, txHashRefUTXO) {
     const assetUtxo: UTxO = await getUtxo(vestingAddr, txHashVestedUTXO);
     const refScriptUtxo: UTxO = await getUtxo(burnAddr, txHashRefUTXO);
-    const redeemer = { data: { alternative: 1, fields: [""] } };
+    const redeemer = { data: { alternative: 0, fields: [] } };
     const slot = resolveSlotNo("preview", Date.now() - 30000);
 
     const tx = new Transaction({ initiator: wallet, fetcher: provider })
