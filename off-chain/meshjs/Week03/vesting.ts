@@ -39,7 +39,7 @@ const signerHash: string = deserializeAddress(walletAddress).pubKeyHash;
 
 // Set the vesting deadline
 const deadlineDate: Date = new Date("2025-02-05T00:00:00Z")
-const deadlinePOSIX = BigInt(deadlineDate.getTime());
+const deadlinePOSIX: bigint = BigInt(deadlineDate.getTime());
 
 // Defining our vesting script 
 const vestingScript: PlutusScript = {

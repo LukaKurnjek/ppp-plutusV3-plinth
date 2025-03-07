@@ -9,7 +9,10 @@ import {
     MeshWallet, 
     Transaction, 
     PlutusScript,
-    applyCborEncoding
+    applyCborEncoding,
+    UTxO,
+    Action,
+    Mint
   } from "@meshsdk/core";
 import { applyParamsToScript } from "@meshsdk/core-cst";
 import { secretSeed } from "./seed.ts";
@@ -17,8 +20,8 @@ import { secretSeed } from "./seed.ts";
     export const secretSeed = ["seed1", "seed2", ... ] */
 
 // Define blockchain provider and wallet 
-const provider = new BlockfrostProvider("<blockfrost-key>");
-const wallet = new MeshWallet({
+const provider: BlockfrostProvider = new BlockfrostProvider("<blockfrost-key>");
+const wallet: MeshWallet = new MeshWallet({
     networkId: 0, //0=testnet, 1=mainnet
     fetcher: provider,
     submitter: provider,
@@ -29,11 +32,11 @@ const wallet = new MeshWallet({
 });
 
 // Define address and public key hash of it  
-const walletAddress = await wallet.getChangeAddress();
+const walletAddress: string = await wallet.getChangeAddress();
 
 // Defining the UTXO we want to spend 
-const utxos = await wallet.getUtxos();
-const utxo = utxos[0];
+const utxos: UTxO[] = await wallet.getUtxos();
+const utxo: UTxO = utxos[0];
 
 // Defining our NFT policy 
 const nftPolicy: PlutusScript = {
@@ -44,16 +47,16 @@ const nftPolicy: PlutusScript = {
 };
 
 // Defining our NFT token 
-const nftToken = {
+const nftToken: Mint = {
     assetName: 'My NFT',
     assetQuantity: '1',
     recipient: { address: walletAddress }
   }
 
 // Minting our NFT  
-async function mintNFT() {
+async function mintNFT(): Promise<string> {
     // The redeemer for the minting policy, corresponding to ()
-    const redeemer = { data: { alternative: 0, fields: [] } }
+    const redeemer: Pick<Action, "data"> = { data: { alternative: 0, fields: [] } }
 
     const tx = new Transaction({ initiator: wallet, fetcher: provider })
         .setNetwork("preview")

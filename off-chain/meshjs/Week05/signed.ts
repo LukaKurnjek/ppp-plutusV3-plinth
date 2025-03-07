@@ -10,7 +10,9 @@ import {
     Transaction, 
     PlutusScript,
     applyCborEncoding,
-    deserializeAddress
+    deserializeAddress,
+    Mint,
+    Action
   } from "@meshsdk/core";
 import { applyParamsToScript } from "@meshsdk/core-cst";
 import { secretSeed } from "./seed.ts";
@@ -18,8 +20,8 @@ import { secretSeed } from "./seed.ts";
     export const secretSeed = ["seed1", "seed2", ... ] */
 
 // Define blockchain provider and wallet 
-const provider = new BlockfrostProvider("<blockfrost-key>");
-const wallet = new MeshWallet({
+const provider: BlockfrostProvider = new BlockfrostProvider("<blockfrost-key>");
+const wallet: MeshWallet = new MeshWallet({
     networkId: 0, //0=testnet, 1=mainnet
     fetcher: provider,
     submitter: provider,
@@ -30,7 +32,7 @@ const wallet = new MeshWallet({
 });
 
 // Define address and public key hash of it  
-const walletAddress = await wallet.getChangeAddress();
+const walletAddress: string = await wallet.getChangeAddress();
 const signerHash: string = deserializeAddress(walletAddress).pubKeyHash;
 
 // Defining our minting policy 
@@ -42,16 +44,16 @@ const mintingPolicy: PlutusScript = {
 };
 
 // Defining our token 
-const token = {
+const token: Mint = {
     assetName: 'MyTokens',
     assetQuantity: '2',
     recipient: { address: walletAddress }
   }
 
 // Minting our tokens 
-async function mintTokens() {
+async function mintTokens(): Promise<string> {
     // The redeemer for the minting policy, corresponding to ()
-    const redeemer = { data: { alternative: 0, fields: [] } }
+    const redeemer: Pick<Action, "data"> = { data: { alternative: 0, fields: [] } }
 
     const tx = new Transaction({ initiator: wallet, fetcher: provider })
         .setNetwork("preview")
