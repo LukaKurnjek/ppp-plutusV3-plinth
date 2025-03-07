@@ -80,7 +80,7 @@ const utxos = await provider.fetchAddressUTxOs(scriptAddress);
 async function claimFunds(txHashVestedUTXO: string): Promise<string> {
     const assetUtxo: UTxO = await getUtxo(vestingAddr, txHashVestedUTXO);
     const redeemer: Pick<Action, "data"> = { data: { alternative: 0, fields: [] } };
-    const slot: string = resolveSlotNo('preview', Date.now() - 30000);
+    const slot: string = resolveSlotNo('preview', Date.now() - 40000);
 
     const tx = new Transaction({ initiator: wallet, fetcher: provider })
         .setNetwork("preview")
