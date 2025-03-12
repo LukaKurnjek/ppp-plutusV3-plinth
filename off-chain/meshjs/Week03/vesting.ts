@@ -64,7 +64,7 @@ async function sendFunds(amount: string): Promise<string> {
     return txHash
 }
 
-// Retunrs UTXOs at a given address that contian the given transaction hash 
+// Retunrs a UTXO at a given address that contians the given transaction hash 
 async function getUtxo(scriptAddress: string, txHash: string): Promise<UTxO> {
 const utxos = await provider.fetchAddressUTxOs(scriptAddress);
     if (utxos.length == 0) {
