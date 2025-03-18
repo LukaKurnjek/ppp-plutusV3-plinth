@@ -10,7 +10,8 @@ import {
   Transaction, 
   PlutusScript,
   resolvePlutusScriptAddress,
-  applyCborEncoding
+  applyCborEncoding,
+  Action
 } from "@meshsdk/core";
 import { UTxO } from "@meshsdk/common";
 import { secretSeed } from "./seed.ts";
@@ -70,7 +71,7 @@ async function claimFunds(txHashAssetUtxo) {
 
   // For the validator with the custom defined type for redeemer use instead: 
   //const redeemer = { data: { alternative: 0, fields: [BigInt(42)] } };
-  const redeemer = { data: BigInt(42) };
+  const redeemer: Pick<Action, "data"> = { data: BigInt(42) };
   
   const tx = new Transaction({ initiator: wallet, fetcher: provider })
     .setNetwork("preview")
