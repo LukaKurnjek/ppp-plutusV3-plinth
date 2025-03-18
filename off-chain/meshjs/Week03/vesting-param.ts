@@ -94,7 +94,7 @@ async function deployRefScript(lovelaceAmount: string): Promise<string> {
     return txHash
 }
 
-// Retunrs a UTXO at a given address that contians the given transaction hash 
+// Returns a UTXO at a given address that contains the given transaction hash 
 async function getUtxo(scriptAddress: string, txHash: string): Promise<UTxO> {
     const utxos = await provider.fetchAddressUTxOs(scriptAddress);
     if (utxos.length == 0) {
