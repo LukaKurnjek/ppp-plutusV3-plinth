@@ -23,6 +23,7 @@
 {-# OPTIONS_GHC -fno-strictness #-}
 {-# OPTIONS_GHC -fno-unbox-small-strict-fields #-}
 {-# OPTIONS_GHC -fno-unbox-strict-fields #-}
+{-# OPTIONS_GHC -fno-warn-unused-binds #-}
 {-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.1.0 #-}
 
 module Week03.Vesting where
@@ -173,3 +174,57 @@ compiledParam2VestingVal = $$(compile [||wrappedVal||])
 
 serializedParam2VestingVal :: SerialisedScript
 serializedParam2VestingVal = serialiseCompiledCode compiledParam2VestingVal
+
+{- ------------------------------------------------------------------------------------------ -}
+{- ----------------------------------------- TYPES ------------------------------------------ -}
+
+data VestingDatumMix = VestingDatum1 { beneficiary1 :: PubKeyHash,
+                                       deadline1 :: POSIXTime }
+                     | VestingDatum2 { deadline2 :: POSIXTime,
+                                       beneficiary2 :: PubKeyHash }
+                     deriving stock (Generic)
+                     deriving anyclass (HasBlueprintDefinition)
+
+makeIsDataSchemaIndexed ''VestingDatumMix [('VestingDatum1, 0), ('VestingDatum2, 1)]
+
+{- ------------------------------------------------------------------------------------------ -}
+{- --------------------------------- VALIDATOR MIXED DATUM ---------------------------------- -}
+
+{-# INLINEABLE vestingValMix #-}
+vestingValMix :: ScriptContext -> Bool
+vestingValMix ctx =
+  traceIfFalse "Is not the beneficiary" checkBeneficiary
+    && traceIfFalse "Deadline not reached" checkDeadline
+ where
+  checkBeneficiary :: Bool
+  checkBeneficiary = txSignedBy info beneficiaryMix
+
+  checkDeadline :: Bool
+  checkDeadline = from deadlineMix `contains` txInfoValidRange info
+
+  vestingDatum :: VestingDatumMix
+  vestingDatum = case scriptContextScriptInfo ctx of
+    SpendingScript _txRef (Just datum) -> case (fromBuiltinData @VestingDatumMix . getDatum) datum of
+      Just d  -> d
+      Nothing -> traceError "Expected correctly shaped datum"
+    _ -> traceError "Expected SpendingScript with datum"
+
+  variables :: (PubKeyHash, POSIXTime)
+  variables@(beneficiaryMix, deadlineMix) = case vestingDatum of
+    VestingDatum1 b d  -> (b, d)
+    VestingDatum2 d b  -> (b, d)
+
+  info :: TxInfo
+  info = scriptContextTxInfo ctx
+
+{- ------------------------------------------------------------------------------------------ -}
+{- ---------------------------------------- HELPERS ----------------------------------------- -}
+
+compiledVestingValMix :: CompiledCode (BuiltinData -> BuiltinUnit)
+compiledVestingValMix = $$(compile [||wrappedVal||])
+ where
+  wrappedVal :: BuiltinData -> BuiltinUnit
+  wrappedVal ctx = check $ vestingValMix (unsafeFromBuiltinData ctx)
+
+serializedVestingValMix :: SerialisedScript
+serializedVestingValMix = serialiseCompiledCode compiledVestingValMix

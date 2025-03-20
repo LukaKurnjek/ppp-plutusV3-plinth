@@ -46,6 +46,7 @@ blueprint =
           , vestingValidator
           , vestingValidatorParam
           , vestingValidatorParam2
+          , vestingValidatorMix
           , signedValidator
           , nftValidator
           ]
@@ -54,6 +55,7 @@ blueprint =
           @[ ()
            , Integer
            , Vesting.VestingDatum
+           , Vesting.VestingDatumMix
            , Vesting.VestingParam
            , PubKeyHash
            , POSIXTime
@@ -283,6 +285,31 @@ vestingValidatorParam2 =
     , validatorDatum = Nothing
     , validatorCompiledCode =
         Just . Short.fromShort $ Vesting.serializedParam2VestingVal
+    }
+
+vestingValidatorMix :: ValidatorBlueprint referencedTypes
+vestingValidatorMix =
+  MkValidatorBlueprint
+    { validatorTitle = "Vesting validator with mixed datum"
+    , validatorDescription = Just "Validator that allows spending only by a certain key and after a certain deadline"
+    , validatorParameters = []
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Just "Redeemer for the vesting validator"
+          , argumentPurpose = Set.singleton Spend
+          , argumentSchema = definitionRef @()
+          }
+    , validatorDatum =
+        Just $
+          MkArgumentBlueprint
+            { argumentTitle = Just "VestingDatumMix"
+            , argumentDescription = Just "Mixed datum for the vesting validator"
+            , argumentPurpose = Set.singleton Spend
+            , argumentSchema = definitionRef @Vesting.VestingDatumMix
+            }
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Vesting.serializedVestingValMix
     }
 
 {- -------------------------------------------------------------------------------------------- -}
