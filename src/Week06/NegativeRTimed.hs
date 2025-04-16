@@ -37,7 +37,8 @@ import           PlutusLedgerApi.V3            (Datum (..), ScriptContext (..),
                                                 TxInfo (txInfoValidRange),
                                                 getRedeemer)
 import           PlutusTx                      (BuiltinData, CompiledCode,
-                                                UnsafeFromData (unsafeFromBuiltinData),
+                                                UnsafeFromData 
+                                                  (unsafeFromBuiltinData),
                                                 compile,
                                                 makeIsDataSchemaIndexed)
 import           PlutusTx.Blueprint            (HasBlueprintDefinition)
@@ -74,15 +75,18 @@ negativeRTimedVal ctx =
 
   dat :: CustomDatum
   dat = case scriptContextScriptInfo ctx of
-    SpendingScript _txRef (Just datum) -> case (fromBuiltinData @CustomDatum . getDatum) datum of
-      Just d  -> d
-      Nothing -> traceError "Expected correctly shaped datum"
+    SpendingScript _txRef (Just datum) -> 
+      case (fromBuiltinData @CustomDatum . getDatum) datum of
+        Just d  -> d
+        Nothing -> traceError "Expected correctly shaped datum"
     _ -> traceError "Expected SpendingScript with datum"
 
   red :: Integer
-  red = case (fromBuiltinData @Integer . getRedeemer . scriptContextRedeemer) ctx of
-    Just r  -> r
-    Nothing -> traceError "Expected redeemer"
+  red = case (fromBuiltinData @Integer 
+              . getRedeemer 
+              . scriptContextRedeemer) ctx of
+          Just r  -> r
+          Nothing -> traceError "Expected redeemer"
 
 {- ------------------------------------------------------------------------------------------ -}
 {- ---------------------------------------- HELPERS ----------------------------------------- -}
@@ -91,7 +95,8 @@ compiledVal :: CompiledCode (BuiltinData -> BuiltinUnit)
 compiledVal = $$(compile [||wrappedVal||])
  where
   wrappedVal :: BuiltinData -> PlutusTx.Prelude.BuiltinUnit
-  wrappedVal ctx = PlutusTx.Prelude.check PlutusTx.Prelude.$ negativeRTimedVal (unsafeFromBuiltinData ctx)
+  wrappedVal ctx = PlutusTx.Prelude.check PlutusTx.Prelude.$ 
+                     negativeRTimedVal (unsafeFromBuiltinData ctx)
 
 serializedNegativeRTimedVal :: SerialisedScript
 serializedNegativeRTimedVal = serialiseCompiledCode compiledVal

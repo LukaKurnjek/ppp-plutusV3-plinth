@@ -16,6 +16,8 @@ library scripts
     Week02.Validators
     Week03.Vesting
     Week05.Minting
+    Week06.NegativeRTimed
+    Week06.ExploitableSwap
 
   build-depends:
     , base

@@ -14,11 +14,13 @@ module Main where
 import qualified Data.ByteString.Short       as Short
 import qualified Data.Set                    as Set
 import           PlutusTx.Blueprint
-import qualified Week02.Validators           as Week02
-import qualified Week03.Vesting              as Vesting
 import           PlutusLedgerApi.Data.V3     (POSIXTime, PubKeyHash)
 import           PlutusLedgerApi.V3          (TokenName, TxOutRef)
+import qualified Week02.Validators           as Week02
+import qualified Week03.Vesting              as Vesting
 import qualified Week05.Minting              as Minting
+import qualified Week06.ExploitableSwap      as ExploitableSwap
+import qualified Week06.NegativeRTimed       as NegativeRTimed
 
 {- -------------------------------------------------------------------------------------------- -}
 {- ---------------------------------------- ENTRY POINT --------------------------------------- -}
@@ -49,6 +51,8 @@ blueprint =
           , vestingValidatorMix
           , signedValidator
           , nftValidator
+          , negativeRTimedValidator
+          , exploitableSwapValidator
           ]
     , contractDefinitions =
         deriveDefinitions
@@ -61,6 +65,8 @@ blueprint =
            , POSIXTime
            , TxOutRef
            , TokenName
+           , NegativeRTimed.CustomDatum
+           , ExploitableSwap.DatumSwap
            ]
     }
 
@@ -371,3 +377,55 @@ nftValidator =
         Just . Short.fromShort $ Minting.serializedNFTVal
     }
 
+{- -------------------------------------------------------------------------------------------- -}
+{- ------------------------------------ VALIDATORS - WEEK06 ----------------------------------- -}
+
+negativeRTimedValidator :: ValidatorBlueprint referencedTypes
+negativeRTimedValidator =
+  MkValidatorBlueprint
+    { validatorTitle = "negativeRTimed Validator"
+    , validatorDescription = Just "Validator that allows spending only when the redeemer is negative after a certain deadline"
+    , validatorParameters = []
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Some number"
+          , argumentDescription = Nothing
+          , argumentPurpose = Set.singleton Spend
+          , argumentSchema = definitionRef @Integer
+          }
+    , validatorDatum =
+        Just $
+          MkArgumentBlueprint
+            { argumentTitle = Just "CustomDatum"
+            , argumentDescription = Just "Dummy newtype that wraps a deadline"
+            , argumentPurpose = Set.singleton Spend
+            , argumentSchema = definitionRef @NegativeRTimed.CustomDatum
+            }
+    , validatorCompiledCode =
+        Just . Short.fromShort $ NegativeRTimed.serializedNegativeRTimedVal
+    }
+
+exploitableSwapValidator :: ValidatorBlueprint referencedTypes
+exploitableSwapValidator =
+  MkValidatorBlueprint
+    { validatorTitle = "Exploitable Swap Validator"
+    , validatorDescription = Just "Validator that allows the user to do swaps  but is vulnerable to double satisfaction"
+    , validatorParameters = []
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Nothing
+          , argumentPurpose = Set.singleton Spend
+          , argumentSchema = definitionRef @()
+          }
+    , validatorDatum =
+        Just $
+          MkArgumentBlueprint
+            { argumentTitle = Just "DatumSwap"
+            , argumentDescription = Just "Contains the beneficiary and the price of the swap"
+            , argumentPurpose = Set.singleton Spend
+            , argumentSchema = definitionRef @ExploitableSwap.DatumSwap
+            }
+    , validatorCompiledCode =
+        Just . Short.fromShort $ ExploitableSwap.serializedExploitableSwapVal
+    }
