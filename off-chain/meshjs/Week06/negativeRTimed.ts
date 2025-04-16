@@ -11,7 +11,6 @@ import {
     PlutusScript,
     resolvePlutusScriptAddress,
     applyCborEncoding,
-    deserializeAddress,
     resolveSlotNo,
     mConStr0,
     Action
