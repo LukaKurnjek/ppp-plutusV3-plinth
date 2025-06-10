@@ -18,6 +18,9 @@ library scripts
     Week05.Minting
     Week06.NegativeRTimed
     Week06.ExploitableSwap
+    Week08.Staking
+    Week09.Oracle
+    Week09.Stablecoin
 
   build-depends:
     , base

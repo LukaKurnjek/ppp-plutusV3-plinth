@@ -15,12 +15,15 @@ import qualified Data.ByteString.Short       as Short
 import qualified Data.Set                    as Set
 import           PlutusTx.Blueprint
 import           PlutusLedgerApi.Data.V3     (POSIXTime, PubKeyHash)
-import           PlutusLedgerApi.V3          (TokenName, TxOutRef)
+import           PlutusLedgerApi.V3          (Address, TokenName, TxOutRef)
 import qualified Week02.Validators           as Week02
 import qualified Week03.Vesting              as Vesting
 import qualified Week05.Minting              as Minting
 import qualified Week06.ExploitableSwap      as ExploitableSwap
 import qualified Week06.NegativeRTimed       as NegativeRTimed
+import qualified Week08.Staking              as Staking
+import qualified Week09.Oracle               as Oracle
+import qualified Week09.Stablecoin           as Stablecoin
 
 {- -------------------------------------------------------------------------------------------- -}
 {- ---------------------------------------- ENTRY POINT --------------------------------------- -}
@@ -53,6 +56,9 @@ blueprint =
           , nftValidator
           , negativeRTimedValidator
           , exploitableSwapValidator
+          , stakingValidator
+          , oracleValidator
+          , stablecoinValidator
           ]
     , contractDefinitions =
         deriveDefinitions
@@ -67,6 +73,12 @@ blueprint =
            , TokenName
            , NegativeRTimed.CustomDatum
            , ExploitableSwap.DatumSwap
+           , Address
+           , Oracle.OracleParams
+           , Oracle.OracleRedeemer
+           , Stablecoin.StablecoinParams
+           , Stablecoin.StablecoinRedeemer
+           , Stablecoin.StablecoinDatum
            ]
     }
 
@@ -428,4 +440,99 @@ exploitableSwapValidator =
             }
     , validatorCompiledCode =
         Just . Short.fromShort $ ExploitableSwap.serializedExploitableSwapVal
+    }
+
+{- -------------------------------------------------------------------------------------------- -}
+{- ------------------------------------ VALIDATORS - WEEK08 ----------------------------------- -}
+
+stakingValidator :: ValidatorBlueprint referencedTypes
+stakingValidator =
+  MkValidatorBlueprint
+    { validatorTitle = "Staking Validator"
+    , validatorDescription = Just "Validator that allows withdrawls only when half of the rewards are paid to the parameterlized address"
+    , validatorParameters = 
+        [ MkParameterBlueprint
+            { parameterTitle = Just "Address"
+            , parameterDescription = Just "Address to which at least half of the withdrawn rewards should go"
+            , parameterPurpose = Set.singleton Withdraw
+            , parameterSchema = definitionRef @Address
+            }
+        ]
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "Redeemer"
+          , argumentDescription = Nothing
+          , argumentPurpose = Set.fromList [Withdraw, Publish]
+          , argumentSchema = definitionRef @()
+          }
+    , validatorDatum = Nothing
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Staking.serializedStakingVal
+    }
+
+{- -------------------------------------------------------------------------------------------- -}
+{- ------------------------------------ VALIDATORS - WEEK09 ----------------------------------- -}
+
+oracleValidator :: ValidatorBlueprint referencedTypes
+oracleValidator =
+  MkValidatorBlueprint
+    { validatorTitle = "Oracle Validator"
+    , validatorDescription = Just "Validator that allows to provide data using a centralized oracle"
+    , validatorParameters =
+        [ MkParameterBlueprint
+            { parameterTitle = Just "OracleParams"
+            , parameterDescription = Just "Parameters of the oracle. The operator's PKH and the thread NFT"
+            , parameterPurpose = Set.singleton Spend
+            , parameterSchema = definitionRef @Oracle.OracleParams
+            }
+        ]
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "OracleRedeemer"
+          , argumentDescription = Just "Allows to update or delete the oracle data"
+          , argumentPurpose = Set.singleton Spend
+          , argumentSchema = definitionRef @Oracle.OracleRedeemer
+          }
+    , validatorDatum =
+        Just $
+          MkArgumentBlueprint
+            { argumentTitle = Just "Rate"
+            , argumentDescription = Just "The ADA/USD rate provided by the oracle"
+            , argumentPurpose = Set.singleton Spend
+            , argumentSchema = definitionRef @Integer
+            }
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Oracle.serializedOracleVal
+    }
+
+stablecoinValidator :: ValidatorBlueprint referencedTypes
+stablecoinValidator =
+  MkValidatorBlueprint
+    { validatorTitle = "Stablecion Validator"
+    , validatorDescription = Just "Validator that allows withdrawls only when half of the rewards are paid to the parameterlized address"
+    , validatorParameters =
+        [ MkParameterBlueprint
+            { parameterTitle = Just "StablecoinParams"
+            , parameterDescription = Just "Parameters of the oracle. The operator's PKH and the thread NFT"
+            , parameterPurpose = Set.fromList [Mint, Spend]
+            , parameterSchema = definitionRef @Stablecoin.StablecoinParams
+            }
+        ]
+    , validatorRedeemer =
+        MkArgumentBlueprint
+          { argumentTitle = Just "StablecoinRedeemer"
+          , argumentDescription = Nothing
+          , argumentPurpose = Set.fromList [Mint, Spend]
+          , argumentSchema = definitionRef @Stablecoin.StablecoinRedeemer
+          }
+    , validatorDatum =
+        Just $
+          MkArgumentBlueprint
+            { argumentTitle = Just "StablecoinDatum"
+            , argumentDescription = Just "Contains tha collateral's owner and the amount of stablecoins minted with this collateral"
+            , argumentPurpose = Set.singleton Spend
+            , argumentSchema = definitionRef @Stablecoin.StablecoinDatum
+            }
+    , validatorCompiledCode =
+        Just . Short.fromShort $ Stablecoin.serializedStablecoinVal
     }
