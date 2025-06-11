@@ -13,7 +13,7 @@ language that compiles to Plutus.
 ## On-chain code 
 
 This branch contains to PlutusV3 translated validator code from the 
-[4th itteration](https://github.com/input-output-hk/plutus-pioneer-program/tree/fourth-iteration) 
+[4th iteration](https://github.com/input-output-hk/plutus-pioneer-program/tree/fourth-iteration) 
 of the Pioneer program. Some additional validator examples are added. The code 
 in this branch can be compiled with a nix shell provided by the 
 [plinth-template](https://github.com/IntersectMBO/plinth-template/tree/main) 
