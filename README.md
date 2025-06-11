@@ -12,10 +12,10 @@ language that compiles to Plutus.
 
 ## On-chain code 
 
-This branch contains the translated smart contract code to PlutusV3 from the 
+This branch contains to PlutusV3 translated validator code from the 
 [4th itteration](https://github.com/input-output-hk/plutus-pioneer-program/tree/fourth-iteration) 
-of the Pioneer program that also contains video lectures. The code in this branch 
-can be compiled with a nix shell provided by the 
+of the Pioneer program. Some additional validator examples are added. The code 
+in this branch can be compiled with a nix shell provided by the 
 [plinth-template](https://github.com/IntersectMBO/plinth-template/tree/main) 
 repository. Compilation was tested with Nix version `2.25.3` and `plinth-template`
 repository commit: `4adea2ef260a99ec9d36de609579ae5208ac8c10`. 
@@ -38,7 +38,8 @@ is included in this branch. One can read more about Plutus blueprints in
 ## Off-chain code 
 
 This branch is work-in-progress. Off-chain code is currently provided for validators up to 
-`week06`. The code works on Cardano `preview` network. The code examples use two different 
+`week05`. The code works on Cardano `preview` network. Comments in the code link the off-chain 
+code to on-chain code and provide additional information. The code examples use two different 
 libraries: [MeshJS](https://meshjs.dev/) and 
 [Lucid Evolution](https://anastasia-labs.github.io/lucid-evolution/). Both libraries need to 
 be installed together with [Deno](https://deno.com/), a runtime environment for JavaScript/TypeScript. 
@@ -63,7 +64,8 @@ installing the packages. Below is an example of this file:
 To run the off-chain code first create the `seed.ts` file that contains the seed of your 
 test wallet. You can create a test wallet with [Lace](https://www.lace.io/) and fund it on test 
 network with the [Cardano faucet](https://docs.cardano.org/cardano-testnets/tools/faucet). 
-The wallet should have `ada` on `preview` network. The `seed.ts` should be structured as: 
+The wallet should have `ada` on `preview` network. The `seed.ts` file should contain the 
+secret seed in the following form: 
 
 * for MeshJS
 ```console
