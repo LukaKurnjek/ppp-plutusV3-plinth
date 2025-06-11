@@ -37,7 +37,7 @@ is included in this branch. One can read more about Plutus blueprints in
 
 ## Off-chain code 
 
-This branch is work-in-progress. Off-chain code is currently provided for validators up to 
+This branch is **work-in-progress**. Off-chain code is currently provided for validators up to 
 `week05`. The code works on Cardano `preview` network. Comments in the code link the off-chain 
 code to on-chain code and provide additional information. The code examples use two different 
 libraries: [MeshJS](https://meshjs.dev/) and 
