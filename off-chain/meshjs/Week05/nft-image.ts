@@ -1,10 +1,10 @@
 
 /*
 Off-chain code for the NFT validator (nftVal) defined in 
-https://github.com/input-output-hk/plutus-pioneer-program/blob/plinth-plutusV3/src/Week05/Minting.hs
+https://github.com/LukaKurnjek/ppp-plutusV3-plinth/blob/main/src/Week05/Minting.hs
 
 Code currently produces an NFT where the image is not visible. 
-NOTES: Before running the code input a blockfrost key for preview in line 29. 
+NOTES: Before running the code input a blockfrost key for preview in line 30. 
 */
 
 import { 
